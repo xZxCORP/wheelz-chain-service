@@ -39,3 +39,17 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/${{ vars.IMAGE_NAME }}:latest
+      - name: Trigger webhook
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: "https://webhook.zcorp.ovh/webhook/docker-service"
+          method: "PUT"
+          customHeaders: '{"Content-Type": "application/json"}'
+          preventFailureOnNoResponse: true
+          timeout: 60000
+          data: |
+            {
+              "service": "wheelz_blockchain_service",
+              "image": "${{ secrets.DOCKER_USERNAME }}/${{ vars.IMAGE_NAME }}:latest",
+              "secret": "${{ secrets.WEBHOOK_SECRET }}"
+            }
