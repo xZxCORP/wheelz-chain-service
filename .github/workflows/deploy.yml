@@ -49,7 +49,7 @@ jobs:
           timeout: 60000
           data: |
             {
-              "service": "wheelz_blockchain",
+              "service": "wheelz_chain",
               "image": "${{ secrets.DOCKER_USERNAME }}/${{ vars.IMAGE_NAME }}:latest",
               "secret": "${{ secrets.WEBHOOK_SECRET }}"
             }

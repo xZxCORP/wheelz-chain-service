@@ -1,0 +1,27 @@
+services:
+  app:
+    build:
+      context: .
+      target: development
+    ports:
+      - '3000:3000'
+    networks:
+      - chain-services
+      - wheelz-app
+    develop:
+      watch:
+        - path: ./src
+          target: /app/src
+          action: sync+restart
+        - path: .env
+          target: /app/.env
+          action: sync+restart
+        - path: package.json
+          action: rebuild
+        - path: package-lock.json
+          action: rebuild
+
+networks:
+  chain-services:
+  wheelz-app:
+    external: true

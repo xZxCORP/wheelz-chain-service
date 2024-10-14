@@ -1,27 +1,33 @@
 FROM node:20-alpine AS base
 
-FROM base AS builder
-
+FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --only=production
 
-COPY package*json tsconfig.json src ./
-
-RUN npm ci && \
-    npm run build && \
-    npm prune --production
+FROM base AS builder
+WORKDIR /app
+COPY . .
+RUN npm ci
+RUN npm run build
 
 FROM base AS runner
 WORKDIR /app
-
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 hono
-
-COPY --from=builder --chown=hono:nodejs /app/node_modules /app/node_modules
-COPY --from=builder --chown=hono:nodejs /app/dist /app/dist
-COPY --from=builder --chown=hono:nodejs /app/package.json /app/package.json
-
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/src ./src
+COPY package.json ./
 USER hono
 EXPOSE 3000
+CMD ["node", "dist/index.js"]
 
-CMD ["node", "/app/dist/index.js"]
+FROM base AS development
+RUN apk add --no-cache bash
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm install
+COPY . .
+CMD ["sh", "-c", "./wait-for-it.sh rabbitmq:5672 -- npm run dev"]

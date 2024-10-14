@@ -1,5 +1,5 @@
 {
-  "name": "@wheelz/honojs-template",
+  "name": "@wheelz/chain-service",
   "description": "",
   "type": "module",
   "engines": {
@@ -20,10 +20,10 @@
   "devDependencies": {
     "@swc/core": "^1.5.25",
     "@types/node": "^20.14.1",
-    "@zcorp/eslint-config": "^1.0.2",
-    "@zcorp/prettier-config": "^1.0.2",
-    "@zcorp/shared-typing-wheelz": "^1.0.0",
-    "@zcorp/tsconfig": "^1.0.2",
+    "@zcorp/eslint-config": "latest",
+    "@zcorp/prettier-config": "latest",
+    "@zcorp/shared-typing-wheelz": "latest",
+    "@zcorp/tsconfig": "latest",
     "eslint": "^8.57.0",
     "glob": "^10.4.1",
     "prettier": "^3.3.1",
