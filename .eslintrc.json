@@ -1,3 +1,16 @@
 {
-  "extends": ["@zcorp/eslint-config/app"]
+  "extends": ["@zcorp/eslint-config/app"],
+  "plugins": ["unused-imports"],
+  "rules": {
+    "unused-imports/no-unused-imports": "error",
+    "unicorn/throw-new-error": "off",
+    "unicorn/no-null": "off",
+    "unicorn/no-useless-undefined": "off",
+    "unicorn/no-process-exit": "off",
+    "unicorn/prefer-top-level-await": "off",
+    "unicorn/no-array-reduce": "off",
+    "unicorn/prefer-ternary":"off",
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/ban-types": "off"
+  }
 }
