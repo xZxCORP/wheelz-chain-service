@@ -59,7 +59,6 @@ export class MongoDBChainRepository implements ChainRepository, ManagedResource 
       socketTimeoutMS: 2000,
       serverSelectionTimeoutMS: 2000,
     });
-    console.log('Connected to MongoDB');
     this.db = this.client.db(this.databaseName);
     this.collection = this.db.collection<Block>(this.collectionName);
     await this.collection.createIndex({ hash: 1 }, { unique: true });
