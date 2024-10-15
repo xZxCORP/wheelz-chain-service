@@ -1,15 +1,15 @@
 import type { ServiceHealthStatus } from '@zcorp/shared-typing-wheelz';
 
 import type { HealthCheckPort } from '../../../application/ports/health-check.port.js';
-import type { QueuePort } from '../../../application/ports/queue.port.js';
+import type { ChainRepository } from '../../../domain/repositories/chain.repository.js';
 
-export class QueueHealthCheck implements HealthCheckPort {
-  name = 'queue';
+export class ChainRepositoryHealthCheck implements HealthCheckPort {
+  name = 'chain';
 
-  constructor(private queue: QueuePort) {}
+  constructor(private chainRepository: ChainRepository) {}
 
   async isHealthy(): Promise<ServiceHealthStatus> {
-    const isRunning = await this.queue.isRunning();
+    const isRunning = await this.chainRepository.isRunning();
     if (isRunning) {
       return {
         name: this.name,
@@ -19,7 +19,7 @@ export class QueueHealthCheck implements HealthCheckPort {
       return {
         name: this.name,
         status: 'unhealthy',
-        message: 'Queue is not running',
+        message: 'Chain infra is not running',
       };
     }
   }
