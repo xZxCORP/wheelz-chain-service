@@ -17,6 +17,9 @@ export class CreateBlockUseCase {
   ) {}
   async execute(transactions: VehicleTransaction[]): Promise<Block> {
     const latestBlock = await this.chainRepository.getLatestBlock();
+    if (!latestBlock) {
+      throw new Error('Chain is not initialized');
+    }
     const newBlock = await this.createBlock(latestBlock.hash, transactions);
     await this.chainRepository.addBlock(newBlock);
     return newBlock;

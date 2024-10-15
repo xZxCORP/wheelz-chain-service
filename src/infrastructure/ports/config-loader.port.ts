@@ -7,6 +7,11 @@ export const configSchema = z.object({
     url: z.string(),
     queueName: z.string(),
   }),
+  chain: z.object({
+    uri: z.string(),
+    databaseName: z.string(),
+    collectionName: z.string(),
+  }),
   api: z.object({
     host: z.string(),
     port: z.coerce.number(),
