@@ -4,7 +4,7 @@ services:
       context: .
       target: development
     ports:
-      - '3000:3000'
+      - '${API_PORT}:${API_PORT}'
     networks:
       - chain-services
       - wheelz-app
