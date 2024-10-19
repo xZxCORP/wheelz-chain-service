@@ -20,20 +20,7 @@ services:
           action: rebuild
         - path: package-lock.json
           action: rebuild
-  mongo:
-    image: 'mongo:latest'
-    environment:
-      - 'MONGO_INITDB_ROOT_USERNAME=root'
-      - 'MONGO_INITDB_ROOT_PASSWORD=root'
-      - 'MONGODB_USER=wheelz'
-      - 'MONGODB_PASSWORD=root'
-      - 'MONGODB_DATABASE=${CHAIN_DATABASE_NAME}'
-    volumes:
-      - 'mongodb_data:/data/db'
-      - ./init-mongo.sh:/docker-entrypoint-initdb.d/init.sh:ro
 
-    networks:
-      - chain-services
 networks:
   chain-services:
   wheelz-app:
