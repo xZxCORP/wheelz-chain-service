@@ -12,6 +12,8 @@
     "test": "glob -c \"tsx --test --test-reporter spec \" \"./tests/**/*.spec.ts\""
   },
   "dependencies": {
+    "@zcorp/shared-typing-wheelz": "latest",
+    "@zcorp/wheelz-contracts": "latest",
     "@cloudamqp/amqp-client": "^3.1.1",
     "dotenv": "^16.4.5",
     "mongodb": "^6.9.0",
@@ -24,7 +26,6 @@
     "@types/node": "^20.14.1",
     "@zcorp/eslint-config": "latest",
     "@zcorp/prettier-config": "latest",
-    "@zcorp/shared-typing-wheelz": "latest",
     "@zcorp/tsconfig": "latest",
     "eslint": "^8.57.0",
     "eslint-plugin-unused-imports": "^4.1.4",
