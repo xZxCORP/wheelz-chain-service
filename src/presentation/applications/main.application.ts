@@ -14,6 +14,8 @@ import { UuidIdGenerator } from '../../infrastructure/adapters/id-generator/uuid
 import { WinstonLogger } from '../../infrastructure/adapters/logger/winston.logger.js';
 import { RabbitMQTransactionQueue } from '../../infrastructure/adapters/queue/rabbit-mq.transaction-queue.js';
 import { MongoDBChainRepository } from '../../infrastructure/repositories/mongodb-chain.repository.js';
+import { FastifyApiServer } from '../api/servers/fastify-api-server.js';
+import { HealthcheckController } from '../controllers/healthcheck.controller.js';
 import { AbstractApplication } from './base.application.js';
 
 export class MainApplication extends AbstractApplication {
@@ -67,8 +69,10 @@ export class MainApplication extends AbstractApplication {
       new TransactionQueueHealthCheck(transactionQueue),
       new ChainRepositoryHealthCheck(chainRepository),
     ]);
+    const healthcheckController = new HealthcheckController(performHealthCheckUseCase);
+    const api = new FastifyApiServer(this.config, healthcheckController);
 
-    this.managedResources = [transactionQueue, chainRepository];
+    this.managedResources = [transactionQueue, chainRepository, api];
   }
 
   static async create(): Promise<MainApplication> {

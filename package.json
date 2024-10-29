@@ -13,12 +13,21 @@
   },
   "dependencies": {
     "@cloudamqp/amqp-client": "^3.1.1",
+    "@fastify/swagger": "^8.15.0",
+    "@fastify/swagger-ui": "^4.1.0",
+    "@fastify/cors":"^9.0.1",
     "@zcorp/shared-typing-wheelz": "latest",
     "@zcorp/wheelz-contracts": "latest",
     "dotenv": "^16.4.5",
     "mongodb": "^6.9.0",
     "winston": "^3.15.0",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "@ts-rest/core": "^3.51.0",
+    "@ts-rest/fastify": "^3.51.0",
+    "@ts-rest/open-api": "^3.51.0",
+    "pino": "^9.4.0",
+    "pino-pretty": "^11.2.2",
+    "fastify": "^4.28.1"
   },
   "devDependencies": {
     "@swc/core": "^1.5.25",
