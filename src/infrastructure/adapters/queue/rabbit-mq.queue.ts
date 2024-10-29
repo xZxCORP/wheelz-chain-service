@@ -53,8 +53,8 @@ export class RabbitMQQueue implements QueuePort, ManagedResource {
     try {
       await this.queue!.publish(Buffer.from(JSON.stringify(data)), { deliveryMode: 2 });
       return true;
-    } catch {
-      throw new Error('Error while enqueuing data');
+    } catch (error) {
+      throw new Error('Error while enqueuing data', { cause: error });
     }
   }
   async isRunning(): Promise<boolean> {

@@ -40,7 +40,6 @@ export class ChainService {
     if (transactions.length > 0) {
       const validTransactions: VehicleTransaction[] = [];
       for (const transaction of transactions) {
-        this.logger.info(`Processing transaction: ${transaction.id}`);
         const isValid = await this.verifyTransactionUseCase.execute(transaction);
         if (!isValid) {
           const result = await this.notifyTransactionCompletedUseCase.execute(
@@ -57,10 +56,12 @@ export class ChainService {
       if (validTransactions.length > 0) {
         await this.createBlockUseCase.execute(validTransactions);
         for (const transaction of validTransactions) {
+          this.logger.info(`Processing valid transaction: ${transaction.id}`);
           const result = await this.notifyTransactionCompletedUseCase.execute(
             transaction.id,
             'finished'
           );
+          this.logger.info(`Transaction completed: ${transaction.id}`);
           if (!result) {
             this.logger.error('Failed to notify transaction completed');
           }

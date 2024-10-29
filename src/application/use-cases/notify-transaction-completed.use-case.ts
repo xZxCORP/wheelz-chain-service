@@ -8,12 +8,12 @@ export class NotifyTransactionCompletedUseCase {
     private completedQueue: QueuePort,
     private dateProvider: DateProviderPort
   ) {}
-  execute(transactionId: string, status: Status) {
+  async execute(transactionId: string, status: Status) {
     const message: VehicleTransactionCompleted = {
       transactionId,
       newStatus: status,
       completedAt: this.dateProvider.now(),
     };
-    return this.completedQueue.enqueue(message);
+    return await this.completedQueue.enqueue(message);
   }
 }

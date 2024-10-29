@@ -1,3 +1,5 @@
+import { CronJob } from 'cron';
+
 import { ChainService } from '../../application/services/chain.service.js';
 import { CreateBlockUseCase } from '../../application/use-cases/create-block.use-case.js';
 import { CreateGenesisBlockUseCase } from '../../application/use-cases/create-genesis-block.use-case.js';
@@ -24,9 +26,9 @@ import { TsRestTransactionRepository } from '../../infrastructure/repositories/t
 import { FastifyApiServer } from '../api/servers/fastify-api-server.js';
 import { HealthcheckController } from '../controllers/healthcheck.controller.js';
 import { AbstractApplication } from './base.application.js';
-
 export class MainApplication extends AbstractApplication {
   private chainService!: ChainService;
+  private jobs: CronJob[] = [];
   async initializeResources(): Promise<void> {
     const transactionQueue = new RabbitMQQueue(
       this.config.transactionQueue.url,
@@ -103,7 +105,7 @@ export class MainApplication extends AbstractApplication {
     const healthcheckController = new HealthcheckController(performHealthCheckUseCase);
     const api = new FastifyApiServer(this.config, healthcheckController);
 
-    this.managedResources = [transactionQueue, chainRepository, api];
+    this.managedResources = [transactionQueue, completedQueue, chainRepository, api];
   }
 
   static async create(): Promise<MainApplication> {
@@ -117,8 +119,25 @@ export class MainApplication extends AbstractApplication {
       })
     );
   }
+
+  override async stop(): Promise<void> {
+    await super.stop();
+    for (const job of this.jobs) {
+      job.stop();
+    }
+  }
   override async initialize(): Promise<void> {
     await super.initialize();
     await this.chainService.initializeChain();
+
+    const processTransactionJob = new CronJob('0 0 */1 * * *', async () => {
+      this.logger.info('Begin transaction processing job');
+      await this.chainService.processTransactionBatch(10);
+      this.logger.info('End transaction processing job');
+    });
+    this.jobs.push(processTransactionJob);
+    for (const job of this.jobs) {
+      job.start();
+    }
   }
 }
