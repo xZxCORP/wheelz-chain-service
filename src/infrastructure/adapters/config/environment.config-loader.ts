@@ -24,6 +24,14 @@ export class EnvironmentConfigLoader implements ConfigLoaderPort {
         host: process.env.API_HOST,
         port: process.env.API_PORT,
       },
+      authService: {
+        url: process.env.AUTH_SERVICE_URL,
+        email: process.env.ADMIN_EMAIL,
+        password: process.env.ADMIN_PASSWORD,
+      },
+      transactionService: {
+        url: process.env.TRANSACTION_SERVICE_URL,
+      },
       dataSigner: {
         signAlgorithm: process.env.DATA_SIGNER_ALGORITHM,
         publicKey: process.env.DATA_SIGNER_PUBLIC,

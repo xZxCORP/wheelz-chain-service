@@ -19,6 +19,7 @@ import { UuidIdGenerator } from '../../infrastructure/adapters/id-generator/uuid
 import { WinstonLogger } from '../../infrastructure/adapters/logger/winston.logger.js';
 import { RabbitMQQueue } from '../../infrastructure/adapters/queue/rabbit-mq.queue.js';
 import { MongoDBChainRepository } from '../../infrastructure/repositories/mongodb-chain.repository.js';
+import { TsRestTransactionRepository } from '../../infrastructure/repositories/ts-rest-transaction.repository.js';
 import { AbstractApplication } from './base.application.js';
 
 export class CliApplication extends AbstractApplication {
@@ -40,11 +41,14 @@ export class CliApplication extends AbstractApplication {
       this.config.chain.collectionName,
       this.logger
     );
-    const dateProvider = new RealDateProvider();
-    const dataSigner = new CryptoDataSigner(
-      this.config.dataSigner.signAlgorithm,
-      this.config.dataSigner.publicKey
+    const transactionRepository = new TsRestTransactionRepository(
+      this.config.transactionService.url,
+      this.config.authService.url,
+      this.config.authService.email,
+      this.config.authService.password
     );
+    const dateProvider = new RealDateProvider();
+    const dataSigner = new CryptoDataSigner(this.config.dataSigner.publicKey);
     const hasher = new Sha256Hasher();
     const idGenerator = new UuidIdGenerator();
 
@@ -68,7 +72,10 @@ export class CliApplication extends AbstractApplication {
       dateProvider,
       idGenerator
     );
-    const dequeueTransactionsUseCase = new DequeueTransactionsUseCase(transactionQueue);
+    const dequeueTransactionsUseCase = new DequeueTransactionsUseCase(
+      transactionQueue,
+      transactionRepository
+    );
     const notifyTransactionCompletedUseCase = new NotifyTransactionCompletedUseCase(
       completedQueue,
       dateProvider

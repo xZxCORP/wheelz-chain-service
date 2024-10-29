@@ -18,6 +18,14 @@ export const configSchema = z.object({
     host: z.string(),
     port: z.coerce.number(),
   }),
+  authService: z.object({
+    url: z.string(),
+    email: z.string(),
+    password: z.string(),
+  }),
+  transactionService: z.object({
+    url: z.string(),
+  }),
   dataSigner: z.object({
     signAlgorithm: z.enum(supportedSignAlgorithms),
     publicKey: z.string(),

@@ -14,7 +14,7 @@ export class BlockDataPreparationService {
   private serializeTransaction(transaction: VehicleTransaction): object {
     return {
       id: transaction.id,
-      timestamp: transaction.timestamp.toISOString(),
+      timestamp: transaction.timestamp,
       dataSignature: transaction.dataSignature,
       action: transaction.action,
       data: transaction.data,

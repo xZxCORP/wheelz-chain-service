@@ -18,7 +18,6 @@ export class RabbitMQQueue implements QueuePort, ManagedResource {
   }
   async dequeue(count: number): Promise<unknown[]> {
     const messages: unknown[] = [];
-
     try {
       for (let index = 0; index < count; index++) {
         const message = await this.queue!.get({ noAck: false });
