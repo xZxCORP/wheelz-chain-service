@@ -5,8 +5,10 @@ export const configSchema = z.object({
   logLevel: z.string(),
   transactionQueue: z.object({
     url: z.string(),
-    queueName: z.string(),
+    newQueueName: z.string(),
+    completedQueueName: z.string(),
   }),
+
   chain: z.object({
     uri: z.string(),
     databaseName: z.string(),
@@ -15,6 +17,14 @@ export const configSchema = z.object({
   api: z.object({
     host: z.string(),
     port: z.coerce.number(),
+  }),
+  authService: z.object({
+    url: z.string(),
+    email: z.string(),
+    password: z.string(),
+  }),
+  transactionService: z.object({
+    url: z.string(),
   }),
   dataSigner: z.object({
     signAlgorithm: z.enum(supportedSignAlgorithms),

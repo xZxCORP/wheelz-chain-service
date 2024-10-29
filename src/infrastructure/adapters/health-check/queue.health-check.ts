@@ -1,15 +1,18 @@
 import type { ServiceHealthStatus } from '@zcorp/shared-typing-wheelz';
 
 import type { HealthCheckPort } from '../../../application/ports/health-check.port.js';
-import type { TransactionQueuePort } from '../../../application/ports/transaction-queue.port.js';
+import type { QueuePort } from '../../../application/ports/queue.port.js';
 
-export class TransactionQueueHealthCheck implements HealthCheckPort {
-  name = 'transactionQueue';
-
-  constructor(private transactionQueue: TransactionQueuePort) {}
+export class QueueHealthCheck implements HealthCheckPort {
+  constructor(
+    private queue: QueuePort,
+    public name: string = 'queue'
+  ) {
+    this.name = name;
+  }
 
   async isHealthy(): Promise<ServiceHealthStatus> {
-    const isRunning = await this.transactionQueue.isRunning();
+    const isRunning = await this.queue.isRunning();
     if (isRunning) {
       return {
         name: this.name,
@@ -19,7 +22,7 @@ export class TransactionQueueHealthCheck implements HealthCheckPort {
       return {
         name: this.name,
         status: 'unhealthy',
-        message: 'Transaction queue is not running',
+        message: 'Queue is not running',
       };
     }
   }
