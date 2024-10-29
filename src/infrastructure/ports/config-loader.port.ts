@@ -5,8 +5,10 @@ export const configSchema = z.object({
   logLevel: z.string(),
   transactionQueue: z.object({
     url: z.string(),
-    queueName: z.string(),
+    newQueueName: z.string(),
+    completedQueueName: z.string(),
   }),
+
   chain: z.object({
     uri: z.string(),
     databaseName: z.string(),

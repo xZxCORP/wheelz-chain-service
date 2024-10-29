@@ -41,6 +41,9 @@ export class MongoDBChainRepository implements ChainRepository, ManagedResource 
     const objects = await this.collection!.find().sort({ timestamp: 1 }).toArray();
     return objects.map((object) => this.mapToBlock(object));
   }
+  async deleteBlocks(): Promise<void> {
+    await this.collection!.deleteMany({});
+  }
   async isRunning(): Promise<boolean> {
     if (!this.client || !this.db || !this.collection) {
       return false;

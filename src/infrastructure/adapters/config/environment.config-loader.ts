@@ -7,15 +7,18 @@ import {
 } from '../../ports/config-loader.port.js';
 
 export class EnvironmentConfigLoader implements ConfigLoaderPort {
-  constructor() {
-    configDotenv();
+  constructor(path: string = '.env') {
+    configDotenv({
+      path,
+    });
   }
   async load(): Promise<Config> {
     const data = {
       logLevel: process.env.LOG_LEVEL,
       transactionQueue: {
-        url: process.env.NOTIFICATION_QUEUE_URL,
-        queueName: process.env.NOTIFICATION_QUEUE_NAME,
+        url: process.env.TRANSACTION_QUEUE_URL,
+        newQueueName: process.env.TRANSACTION_QUEUE_NEW_NAME,
+        completedQueueName: process.env.TRANSACTION_QUEUE_COMPLETED_NAME,
       },
       api: {
         host: process.env.API_HOST,
