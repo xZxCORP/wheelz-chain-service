@@ -4,7 +4,7 @@ export class IsChainInitializedUseCase {
   constructor(private readonly chainRepository: ChainRepository) {}
 
   async execute(): Promise<boolean> {
-    const latestBlock = this.chainRepository.getLatestBlock();
+    const latestBlock = await this.chainRepository.getLatestBlock();
     return !!latestBlock;
   }
 }

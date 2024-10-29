@@ -6,19 +6,18 @@
     "node": ">= 20.11.0"
   },
   "scripts": {
-    "dev": "tsx src/index.ts",
+    "dev": "tsx src/main.runner.ts",
     "build": "tsc",
     "lint": "eslint . --fix",
     "test": "glob -c \"tsx --test --test-reporter spec \" \"./tests/**/*.spec.ts\""
   },
   "dependencies": {
+    "@cloudamqp/amqp-client": "^3.1.1",
     "@zcorp/shared-typing-wheelz": "latest",
     "@zcorp/wheelz-contracts": "latest",
-    "@cloudamqp/amqp-client": "^3.1.1",
     "dotenv": "^16.4.5",
     "mongodb": "^6.9.0",
-    "pino": "^9.4.0",
-    "pino-pretty": "^11.2.2",
+    "winston": "^3.15.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
