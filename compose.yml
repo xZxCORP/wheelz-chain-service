@@ -1,4 +1,18 @@
 services:
+  chain_state_db:
+    image: mysql
+    restart: always
+    ports:
+      - '3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - wheelz-chain-state-service-local-volume:/var/lib/mysql
+    networks:
+      - chain-services
   app:
     build:
       context: .
@@ -27,3 +41,4 @@ networks:
     external: true
 volumes:
   mongodb_data:
+  wheelz-chain-state-service-local-volume:
