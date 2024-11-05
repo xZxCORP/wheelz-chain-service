@@ -65,8 +65,6 @@ export class MongoDBChainRepository implements ChainRepository, ManagedResource 
     this.db = this.client.db(this.databaseName);
     this.collection = this.db.collection<Block>(this.collectionName);
     await this.collection.createIndex({ hash: 1 }, { unique: true });
-
-    this.logger.info('MongoDB initialized');
   }
   async dispose(): Promise<void> {
     if (this.client) {
@@ -76,6 +74,5 @@ export class MongoDBChainRepository implements ChainRepository, ManagedResource 
     this.db = null;
     this.collection = null;
     this.client = null;
-    this.logger.info('MongoDB disposed');
   }
 }

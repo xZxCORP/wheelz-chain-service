@@ -17,10 +17,12 @@ import { CryptoDataSigner } from '../../infrastructure/adapters/data-signer/cryp
 import { RealDateProvider } from '../../infrastructure/adapters/date/real.date-provider.js';
 import { Sha256Hasher } from '../../infrastructure/adapters/hasher/sha256.hasher.js';
 import { ChainRepositoryHealthCheck } from '../../infrastructure/adapters/health-check/chain-repository.health-check.js';
+import { ChainStateRepositoryHealthCheck } from '../../infrastructure/adapters/health-check/chain-state-repository.health-check.js';
 import { QueueHealthCheck } from '../../infrastructure/adapters/health-check/queue.health-check.js';
 import { UuidIdGenerator } from '../../infrastructure/adapters/id-generator/uuid.id-generator.js';
 import { WinstonLogger } from '../../infrastructure/adapters/logger/winston.logger.js';
 import { RabbitMQQueue } from '../../infrastructure/adapters/queue/rabbit-mq.queue.js';
+import { KyselyChainStateRepository } from '../../infrastructure/repositories/chain-state/kysely/kysely-chain-state.repository.js';
 import { MongoDBChainRepository } from '../../infrastructure/repositories/mongodb-chain.repository.js';
 import { TsRestTransactionRepository } from '../../infrastructure/repositories/ts-rest-transaction.repository.js';
 import { FastifyApiServer } from '../api/servers/fastify-api-server.js';
@@ -46,6 +48,13 @@ export class MainApplication extends AbstractApplication {
       this.config.chain.collectionName,
       this.logger
     );
+    const chainStateRepository = new KyselyChainStateRepository({
+      database: this.config.chainState.databaseName,
+      username: this.config.chainState.username,
+      password: this.config.chainState.password,
+      host: this.config.chainState.host,
+      port: this.config.chainState.port,
+    });
     const transactionRepository = new TsRestTransactionRepository(
       this.config.transactionService.url,
       this.config.authService.url,
@@ -101,11 +110,18 @@ export class MainApplication extends AbstractApplication {
       new QueueHealthCheck(transactionQueue, 'transactionQueue'),
       new QueueHealthCheck(completedQueue, 'completedQueue'),
       new ChainRepositoryHealthCheck(chainRepository),
+      new ChainStateRepositoryHealthCheck(chainStateRepository),
     ]);
     const healthcheckController = new HealthcheckController(performHealthCheckUseCase);
     const api = new FastifyApiServer(this.config, healthcheckController);
 
-    this.managedResources = [transactionQueue, completedQueue, chainRepository, api];
+    this.managedResources = [
+      transactionQueue,
+      completedQueue,
+      chainRepository,
+      chainStateRepository,
+      api,
+    ];
   }
 
   static async create(): Promise<MainApplication> {

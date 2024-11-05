@@ -3,12 +3,12 @@ services:
     image: mysql
     restart: always
     ports:
-      - '3306'
+      - '3308:3306'
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USERNAME}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${CHAIN_STATE_DB_PASSWORD}
+      MYSQL_DATABASE: ${CHAIN_STATE_DB_NAME}
+      MYSQL_USER: ${CHAIN_STATE_DB_USERNAME}
+      MYSQL_PASSWORD: ${CHAIN_STATE_DB_PASSWORD}
     volumes:
       - wheelz-chain-state-service-local-volume:/var/lib/mysql
     networks:
