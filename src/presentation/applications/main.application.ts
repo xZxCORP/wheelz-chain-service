@@ -1,6 +1,7 @@
 import { CronJob } from 'cron';
 
 import { ChainService } from '../../application/services/chain.service.js';
+import { ChainStateService } from '../../application/services/chain-state.service.js';
 import { CreateBlockUseCase } from '../../application/use-cases/create-block.use-case.js';
 import { CreateGenesisBlockUseCase } from '../../application/use-cases/create-genesis-block.use-case.js';
 import { DeleteBlocksUseCase } from '../../application/use-cases/delete-blocks.use-case.js';
@@ -9,6 +10,8 @@ import { GetBlocksUseCase } from '../../application/use-cases/get-blocks.use-cas
 import { IsChainInitializedUseCase } from '../../application/use-cases/is-chain-initialized.use-case.js';
 import { NotifyTransactionCompletedUseCase } from '../../application/use-cases/notify-transaction-completed.use-case.js';
 import { PerformHealthCheckUseCase } from '../../application/use-cases/perform-health-check.use-case.js';
+import { PersistTransactionToChainStateUseCase } from '../../application/use-cases/persist-transaction-to-chain-state.use-case.js';
+import { ResetChainStateUseCase } from '../../application/use-cases/reset-chain-state.use-case.js';
 import { VerifyBlockPairUseCase } from '../../application/use-cases/verify-block-pair.use-case.js';
 import { VerifyTransactionUseCase } from '../../application/use-cases/verify-transaction.use-case.js';
 import { BlockDataPreparationService } from '../../domain/service/block-data-preparation.service.js';
@@ -30,6 +33,7 @@ import { HealthcheckController } from '../controllers/healthcheck.controller.js'
 import { AbstractApplication } from './base.application.js';
 export class MainApplication extends AbstractApplication {
   private chainService!: ChainService;
+  private chainStateService!: ChainStateService;
   private jobs: CronJob[] = [];
   async initializeResources(): Promise<void> {
     const transactionQueue = new RabbitMQQueue(
@@ -48,13 +52,16 @@ export class MainApplication extends AbstractApplication {
       this.config.chain.collectionName,
       this.logger
     );
-    const chainStateRepository = new KyselyChainStateRepository({
-      database: this.config.chainState.databaseName,
-      username: this.config.chainState.username,
-      password: this.config.chainState.password,
-      host: this.config.chainState.host,
-      port: this.config.chainState.port,
-    });
+    const chainStateRepository = new KyselyChainStateRepository(
+      {
+        database: this.config.chainState.databaseName,
+        username: this.config.chainState.username,
+        password: this.config.chainState.password,
+        host: this.config.chainState.host,
+        port: this.config.chainState.port,
+      },
+      this.logger
+    );
     const transactionRepository = new TsRestTransactionRepository(
       this.config.transactionService.url,
       this.config.authService.url,
@@ -94,6 +101,10 @@ export class MainApplication extends AbstractApplication {
       completedQueue,
       dateProvider
     );
+    const persistTransactionToChainStateUseCase = new PersistTransactionToChainStateUseCase(
+      chainStateRepository
+    );
+    const resetChainStateUseCase = new ResetChainStateUseCase(chainStateRepository);
     this.chainService = new ChainService(
       createBlockUseCase,
       getBlocksUseCase,
@@ -105,6 +116,11 @@ export class MainApplication extends AbstractApplication {
       dequeueTransactionsUseCase,
       notifyTransactionCompletedUseCase,
       this.logger
+    );
+    this.chainStateService = new ChainStateService(
+      persistTransactionToChainStateUseCase,
+      resetChainStateUseCase,
+      getBlocksUseCase
     );
     const performHealthCheckUseCase = new PerformHealthCheckUseCase([
       new QueueHealthCheck(transactionQueue, 'transactionQueue'),
@@ -149,8 +165,14 @@ export class MainApplication extends AbstractApplication {
     const processTransactionJob = new CronJob('0 0 */1 * * *', async () => {
       this.logger.info('Begin transaction processing job');
       await this.chainService.processTransactionBatch(10);
+      await this.chainStateService.refreshChainState();
       this.logger.info('End transaction processing job');
     });
+    // const refreshChainStateJob = new CronJob('0 0 */1 * * *', async () => {
+    //   this.logger.info('Begin chain state refresh job');
+    //   await this.chainService.refreshChainState();
+    //   this.logger.info('End chain state refresh job');
+    // });
     this.jobs.push(processTransactionJob);
     for (const job of this.jobs) {
       job.start();

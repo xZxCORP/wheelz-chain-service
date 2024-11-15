@@ -1,7 +1,18 @@
+import { promises as fs } from 'node:fs';
+import path, { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import type { Vehicle } from '@zcorp/shared-typing-wheelz';
-import { Kysely, MysqlDialect } from 'kysely';
+import {
+  FileMigrationProvider,
+  Kysely,
+  type MigrationResult,
+  Migrator,
+  MysqlDialect,
+} from 'kysely';
 import { createPool, type Pool } from 'mysql2';
 
+import type { LoggerPort } from '../../../../application/ports/logger.port.js';
 import type { ChainStateRepository } from '../../../../domain/repositories/chain-state.repository.js';
 import type { ManagedResource } from '../../../managed.resource.js';
 import type { KyselyChainStateDatabase } from './chain-state.database.js';
@@ -14,12 +25,13 @@ export interface KyselyConnection {
 }
 
 export class KyselyChainStateRepository implements ChainStateRepository, ManagedResource {
-  private connection: KyselyConnection;
   private pool: Pool | null = null;
+  private migrator: Migrator | null = null;
   private db: Kysely<KyselyChainStateDatabase> | null = null;
-  constructor(connection: KyselyConnection) {
-    this.connection = connection;
-  }
+  constructor(
+    private readonly connection: KyselyConnection,
+    private readonly logger: LoggerPort
+  ) {}
 
   async getVehicles(): Promise<Vehicle[]> {
     return [];
@@ -58,7 +70,16 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
     });
   }
   async reset(): Promise<boolean> {
-    return true;
+    if (this.db) {
+      this.db.deleteFrom('vehicle_sinister_infos').execute();
+      this.db.deleteFrom('vehicle_technical_control_item').execute();
+      this.db.deleteFrom('vehicle_history_item').execute();
+      this.db.deleteFrom('vehicle_infos').execute();
+      this.db.deleteFrom('vehicle_features').execute();
+      this.db.deleteFrom('vehicle').execute();
+      return true;
+    }
+    return false;
   }
 
   async initialize(): Promise<void> {
@@ -82,6 +103,28 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
     if (!connected) {
       throw new Error('Chain state database is not running');
     }
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+
+    this.migrator = new Migrator({
+      db: this.db,
+      provider: new FileMigrationProvider({
+        fs,
+        path,
+        migrationFolder: path.join(__dirname, 'migrations'),
+      }),
+    });
+    const { error, results } = await this.migrator.migrateToLatest();
+
+    if (results) {
+      this.logResults(results);
+    }
+
+    if (error) {
+      this.logger.error('failed to migrate');
+      this.logger.error('error: ', error);
+      process.exit(1);
+    }
   }
   async dispose(): Promise<void> {
     if (this.db) {
@@ -90,5 +133,16 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
       this.pool = null;
     }
     return;
+  }
+  logResults(results: MigrationResult[]): void {
+    for (const it of results) {
+      if (it.status === 'Success') {
+        this.logger.info(
+          `migration "${it.migrationName}" was executed successfully => ${it.direction}`
+        );
+      } else if (it.status === 'Error') {
+        this.logger.error(`failed to execute migration "${it.migrationName}"`);
+      }
+    }
   }
 }

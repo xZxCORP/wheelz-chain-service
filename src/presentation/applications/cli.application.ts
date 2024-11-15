@@ -1,6 +1,7 @@
 import path from 'node:path';
 
 import { ChainService } from '../../application/services/chain.service.js';
+import { ChainStateService } from '../../application/services/chain-state.service.js';
 import { CreateBlockUseCase } from '../../application/use-cases/create-block.use-case.js';
 import { CreateGenesisBlockUseCase } from '../../application/use-cases/create-genesis-block.use-case.js';
 import { DeleteBlocksUseCase } from '../../application/use-cases/delete-blocks.use-case.js';
@@ -8,6 +9,8 @@ import { DequeueTransactionsUseCase } from '../../application/use-cases/dequeue-
 import { GetBlocksUseCase } from '../../application/use-cases/get-blocks.use-case.js';
 import { IsChainInitializedUseCase } from '../../application/use-cases/is-chain-initialized.use-case.js';
 import { NotifyTransactionCompletedUseCase } from '../../application/use-cases/notify-transaction-completed.use-case.js';
+import { PersistTransactionToChainStateUseCase } from '../../application/use-cases/persist-transaction-to-chain-state.use-case.js';
+import { ResetChainStateUseCase } from '../../application/use-cases/reset-chain-state.use-case.js';
 import { VerifyBlockPairUseCase } from '../../application/use-cases/verify-block-pair.use-case.js';
 import { VerifyTransactionUseCase } from '../../application/use-cases/verify-transaction.use-case.js';
 import { BlockDataPreparationService } from '../../domain/service/block-data-preparation.service.js';
@@ -18,12 +21,14 @@ import { Sha256Hasher } from '../../infrastructure/adapters/hasher/sha256.hasher
 import { UuidIdGenerator } from '../../infrastructure/adapters/id-generator/uuid.id-generator.js';
 import { WinstonLogger } from '../../infrastructure/adapters/logger/winston.logger.js';
 import { RabbitMQQueue } from '../../infrastructure/adapters/queue/rabbit-mq.queue.js';
+import { KyselyChainStateRepository } from '../../infrastructure/repositories/chain-state/kysely/kysely-chain-state.repository.js';
 import { MongoDBChainRepository } from '../../infrastructure/repositories/mongodb-chain.repository.js';
 import { TsRestTransactionRepository } from '../../infrastructure/repositories/ts-rest-transaction.repository.js';
 import { AbstractApplication } from './base.application.js';
 
 export class CliApplication extends AbstractApplication {
   private chainService!: ChainService;
+  private chainStateService!: ChainStateService;
   async initializeResources(): Promise<void> {
     const transactionQueue = new RabbitMQQueue(
       this.config.transactionQueue.url,
@@ -39,6 +44,16 @@ export class CliApplication extends AbstractApplication {
       this.config.chain.uri,
       this.config.chain.databaseName,
       this.config.chain.collectionName,
+      this.logger
+    );
+    const chainStateRepository = new KyselyChainStateRepository(
+      {
+        database: this.config.chainState.databaseName,
+        username: this.config.chainState.username,
+        password: this.config.chainState.password,
+        host: this.config.chainState.host,
+        port: this.config.chainState.port,
+      },
       this.logger
     );
     const transactionRepository = new TsRestTransactionRepository(
@@ -80,6 +95,11 @@ export class CliApplication extends AbstractApplication {
       completedQueue,
       dateProvider
     );
+    const persistTransactionToChainStateUseCase = new PersistTransactionToChainStateUseCase(
+      chainStateRepository
+    );
+    const resetChainStateUseCase = new ResetChainStateUseCase(chainStateRepository);
+
     this.chainService = new ChainService(
       createBlockUseCase,
       getBlocksUseCase,
@@ -92,14 +112,27 @@ export class CliApplication extends AbstractApplication {
       notifyTransactionCompletedUseCase,
       this.logger
     );
+    this.chainStateService = new ChainStateService(
+      persistTransactionToChainStateUseCase,
+      resetChainStateUseCase,
+      getBlocksUseCase
+    );
 
-    this.managedResources = [transactionQueue, completedQueue, chainRepository];
+    this.managedResources = [
+      transactionQueue,
+      completedQueue,
+      chainRepository,
+      chainStateRepository,
+    ];
   }
   async verifyChain(): Promise<boolean> {
     return this.chainService.verifyChain();
   }
   async processTransactions(batchSize: number = 10): Promise<void> {
     return this.chainService.processTransactionBatch(batchSize);
+  }
+  async refreshChainState(): Promise<void> {
+    return this.chainStateService.refreshChainState();
   }
   async resetChain(): Promise<void> {
     return this.chainService.resetChain();
