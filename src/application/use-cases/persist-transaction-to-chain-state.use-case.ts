@@ -11,14 +11,14 @@ export class PersistTransactionToChainStateUseCase {
         break;
       }
       case 'update': {
-        await this.chainStateRepository.updateVehicle(
+        await this.chainStateRepository.updateVehicleByVin(
           transaction.data.vin,
           transaction.data.changes
         );
         break;
       }
       case 'delete': {
-        await this.chainStateRepository.removeVehicle(transaction.data.vin);
+        await this.chainStateRepository.removeVehicleByVin(transaction.data.vin);
         break;
       }
     }

@@ -4,6 +4,6 @@ export class ResetChainStateUseCase {
   constructor(private readonly chainStateRepository: ChainStateRepository) {}
 
   async execute() {
-    await this.chainStateRepository.reset();
+    return await this.chainStateRepository.reset();
   }
 }

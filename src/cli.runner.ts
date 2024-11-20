@@ -96,8 +96,8 @@ async function main() {
         await app.refreshChainState();
         app.logger.info('Chain state refreshed');
         await app.stop();
-      } catch {
-        app.logger.error('Error refreshing chain state');
+      } catch (error) {
+        app.logger.error('Error refreshing chain state', error);
         await app.stop();
         process.exit(1);
       }

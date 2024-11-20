@@ -10,7 +10,7 @@ export interface KyselyChainStateDatabase {
 export interface KyselyVehicleTable {
   id: Generated<number>;
   vin: string;
-  created_at: Date;
+  created_at: Generated<Date>;
 }
 
 export type KyselyVehicle = Selectable<KyselyVehicleTable>;
@@ -29,7 +29,7 @@ export interface KyselyVehicleFeaturesTable {
   reception_type: string;
   technically_admissible_ptac: number;
   ptac: number;
-  ptra: number;
+  ptra: number | null;
   pt_service: number;
   ptav: number;
   category: string;
@@ -41,13 +41,13 @@ export interface KyselyVehicleFeaturesTable {
   net_power: number;
   energy: string;
   seating_number: number;
-  standing_places_number: number;
+  standing_places_number: number | null;
   sonorous_power_level: number;
   engine_speed: number;
-  co2_emission: number;
+  co2_emission: number | null;
   pollution_code: string;
-  power_mass_ratio: number;
-  created_at: Date;
+  power_mass_ratio: number | null;
+  created_at: Generated<Date>;
 }
 
 export type KyselyVehicleFeatures = Selectable<KyselyVehicleFeaturesTable>;
@@ -61,8 +61,8 @@ export interface KyselyVehicleInfosTable {
   first_registration_in_france_date: string;
   first_siv_registration_date: string;
   license_plate: string;
-  siv_conversion_date: string;
-  created_at: Date;
+  siv_conversion_date: string | null;
+  created_at: Generated<Date>;
 }
 
 export type KyselyVehicleInfos = Selectable<KyselyVehicleInfosTable>;
@@ -74,7 +74,7 @@ export interface KyselyVehicleHistoryItemTable {
   vehicle_id: number;
   type: string;
   date: string;
-  created_at: Date;
+  created_at: Generated<Date>;
 }
 
 export type KyselyVehicleHistoryItem = Selectable<KyselyVehicleHistoryItemTable>;
@@ -89,7 +89,7 @@ export interface KyselyTechnicalControlItemTable {
   result_raw: string;
   nature: string;
   km: number;
-  created_at: Date;
+  created_at: Generated<Date>;
 }
 
 export type KyselyTechnicalControlItem = Selectable<KyselyTechnicalControlItemTable>;
@@ -100,9 +100,9 @@ export interface KyselySinisterInfosTable {
   id: Generated<number>;
   vehicle_id: number;
   count: number;
-  last_resolution_date: string;
-  last_sinister_date: string;
-  created_at: Date;
+  last_resolution_date: string | null;
+  last_sinister_date: string | null;
+  created_at: Generated<Date>;
 }
 
 export type KyselySinisterInfos = Selectable<KyselySinisterInfosTable>;
