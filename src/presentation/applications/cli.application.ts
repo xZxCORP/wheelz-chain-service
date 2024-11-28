@@ -7,6 +7,8 @@ import { CreateGenesisBlockUseCase } from '../../application/use-cases/create-ge
 import { DeleteBlocksUseCase } from '../../application/use-cases/delete-blocks.use-case.js';
 import { DequeueTransactionsUseCase } from '../../application/use-cases/dequeue-transactions.use-case.js';
 import { GetBlocksUseCase } from '../../application/use-cases/get-blocks.use-case.js';
+import { GetVehicleOfTheChainByLicensePlate } from '../../application/use-cases/get-vehicle-of-the-chain-by-licence-plate.js';
+import { GetVehicleOfTheChainByVin } from '../../application/use-cases/get-vehicle-of-the-chain-by-vin.js';
 import { IsChainInitializedUseCase } from '../../application/use-cases/is-chain-initialized.use-case.js';
 import { NotifyTransactionCompletedUseCase } from '../../application/use-cases/notify-transaction-completed.use-case.js';
 import { PersistTransactionToChainStateUseCase } from '../../application/use-cases/persist-transaction-to-chain-state.use-case.js';
@@ -99,7 +101,10 @@ export class CliApplication extends AbstractApplication {
       chainStateRepository
     );
     const resetChainStateUseCase = new ResetChainStateUseCase(chainStateRepository);
-
+    const getVehicleOfTheChainByVin = new GetVehicleOfTheChainByVin(chainStateRepository);
+    const getVehicleOfTheChainByLicensePlate = new GetVehicleOfTheChainByLicensePlate(
+      chainStateRepository
+    );
     this.chainService = new ChainService(
       createBlockUseCase,
       getBlocksUseCase,
@@ -115,7 +120,9 @@ export class CliApplication extends AbstractApplication {
     this.chainStateService = new ChainStateService(
       persistTransactionToChainStateUseCase,
       resetChainStateUseCase,
-      getBlocksUseCase
+      getBlocksUseCase,
+      getVehicleOfTheChainByVin,
+      getVehicleOfTheChainByLicensePlate
     );
 
     this.managedResources = [

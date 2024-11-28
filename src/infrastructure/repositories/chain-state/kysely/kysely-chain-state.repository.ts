@@ -3,7 +3,7 @@ import { promises as fs } from 'node:fs';
 import path, { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import type { Vehicle } from '@zcorp/shared-typing-wheelz';
+import type { UpdateVehicleTransactionChanges, Vehicle } from '@zcorp/shared-typing-wheelz';
 import {
   FileMigrationProvider,
   Kysely,
@@ -24,6 +24,11 @@ export interface KyselyConnection {
   username: string;
   password: string;
 }
+export type DeepPartial<T> = T extends object
+  ? {
+      [P in keyof T]?: DeepPartial<T[P]>;
+    }
+  : T;
 
 export class KyselyChainStateRepository implements ChainStateRepository, ManagedResource {
   private pool: Pool | null = null;
@@ -46,6 +51,18 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
   }
   async getVehicleByVin(vin: string): Promise<Vehicle | null> {
     return this.mapInternalVehicleToVehicle(vin);
+  }
+  async getVehicleByLicensePlate(lciensePlate: string): Promise<Vehicle | null> {
+    const vehicle = await this.db
+      ?.selectFrom('vehicle')
+      .innerJoin('vehicle_infos', 'vehicle_infos.vehicle_id', 'vehicle.id')
+      .where('vehicle_infos.license_plate', '=', lciensePlate)
+      .select(['vehicle.id', 'vehicle.vin'])
+      .executeTakeFirst();
+    if (!vehicle) {
+      return null;
+    }
+    return this.mapInternalVehicleToVehicle(vehicle.vin);
   }
   async saveVehicle(vehicle: Vehicle): Promise<boolean> {
     const insertedVehicleResult = await this.db
@@ -107,38 +124,41 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
     if (!insertedVehicleInfosResult || !insertedVehicleInfosResult.insertId) {
       return false;
     }
-
-    const insertedVehicleHistoryItemResult = await this.db
-      ?.insertInto('vehicle_history_item')
-      .values(
-        vehicle.history.map((item) => ({
-          vehicle_id: Number(vehicleId),
-          date: item.date,
-          type: item.type,
-        }))
-      )
-      .executeTakeFirst();
-    if (!insertedVehicleHistoryItemResult || !insertedVehicleHistoryItemResult.insertId) {
-      return false;
+    if (vehicle.history.length > 0) {
+      const insertedVehicleHistoryItemResult = await this.db
+        ?.insertInto('vehicle_history_item')
+        .values(
+          vehicle.history.map((item) => ({
+            vehicle_id: Number(vehicleId),
+            date: item.date,
+            type: item.type,
+          }))
+        )
+        .executeTakeFirst();
+      if (!insertedVehicleHistoryItemResult || !insertedVehicleHistoryItemResult.insertId) {
+        return false;
+      }
     }
-    const insertedVehicleTechnicalControlItemResult = await this.db
-      ?.insertInto('vehicle_technical_control_item')
-      .values(
-        vehicle.technicalControls.map((item) => ({
-          vehicle_id: Number(vehicleId),
-          date: item.date,
-          result: item.result,
-          result_raw: item.resultRaw,
-          nature: item.nature,
-          km: item.km,
-        }))
-      )
-      .executeTakeFirst();
-    if (
-      !insertedVehicleTechnicalControlItemResult ||
-      !insertedVehicleTechnicalControlItemResult.insertId
-    ) {
-      return false;
+    if (vehicle.technicalControls.length > 0) {
+      const insertedVehicleTechnicalControlItemResult = await this.db
+        ?.insertInto('vehicle_technical_control_item')
+        .values(
+          vehicle.technicalControls.map((item) => ({
+            vehicle_id: Number(vehicleId),
+            date: item.date,
+            result: item.result,
+            result_raw: item.resultRaw,
+            nature: item.nature,
+            km: item.km,
+          }))
+        )
+        .executeTakeFirst();
+      if (
+        !insertedVehicleTechnicalControlItemResult ||
+        !insertedVehicleTechnicalControlItemResult.insertId
+      ) {
+        return false;
+      }
     }
     const insertedVehicleSinisterInfosResult = await this.db
       ?.insertInto('vehicle_sinister_infos')
@@ -154,8 +174,134 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
     }
     return true;
   }
-  async updateVehicleByVin(vin: string, vehicle: Partial<Vehicle>): Promise<boolean> {
-    return false;
+  async updateVehicleByVin(
+    vin: string,
+    changes: UpdateVehicleTransactionChanges
+  ): Promise<boolean> {
+    const vehicle = await this.db
+      ?.selectFrom('vehicle')
+      .where('vehicle.vin', '=', vin)
+      .select('id')
+      .executeTakeFirst();
+    if (!vehicle) {
+      return false;
+    }
+    if (changes.features) {
+      const updatedVehicleFeaturesResult = await this.db
+        ?.updateTable('vehicle_features')
+        .set({
+          brand: changes.features.brand,
+          model: changes.features.model,
+          cv_power: changes.features.cvPower,
+          color: changes.features.color,
+          tvv: changes.features.tvv,
+          cnit_number: changes.features.cnitNumber,
+          reception_type: changes.features.receptionType,
+          technically_admissible_ptac: changes.features.technicallyAdmissiblePTAC,
+          ptac: changes.features.ptac,
+          ptra: changes.features.ptra,
+          pt_service: changes.features.ptService,
+          ptav: changes.features.ptav,
+          category: changes.features.category,
+          gender: changes.features.gender,
+          ce_body: changes.features.ceBody,
+          national_body: changes.features.nationalBody,
+          reception_number: changes.features.receptionNumber,
+          displacement: changes.features.displacement,
+          net_power: changes.features.netPower,
+          energy: changes.features.energy,
+          seating_number: changes.features.seatingNumber,
+          standing_places_number: changes.features.standingPlacesNumber,
+          sonorous_power_level: changes.features.sonorousPowerLevel,
+          engine_speed: changes.features.engineSpeed,
+          co2_emission: changes.features.co2Emission,
+          pollution_code: changes.features.pollutionCode,
+          power_mass_ratio: changes.features.powerMassRatio,
+        })
+        .where('vehicle_features.vehicle_id', '=', vehicle.id)
+        .executeTakeFirst();
+      if (!updatedVehicleFeaturesResult) {
+        return false;
+      }
+    }
+    if (changes.infos) {
+      const updatedVehicleInfosResult = await this.db
+        ?.updateTable('vehicle_infos')
+        .set({
+          holder_count: changes.infos.holderCount,
+          first_registration_in_france_date: changes.infos.firstRegistrationInFranceDate,
+          first_siv_registration_date: changes.infos.firstSivRegistrationDate,
+          license_plate: changes.infos.licensePlate,
+          siv_conversion_date: changes.infos.sivConversionDate,
+        })
+        .where('vehicle_infos.vehicle_id', '=', vehicle.id)
+        .executeTakeFirst();
+      if (!updatedVehicleInfosResult) {
+        return false;
+      }
+    }
+    if (changes.sinisterInfos) {
+      const updatedVehicleSinisterInfosResult = await this.db
+        ?.updateTable('vehicle_sinister_infos')
+        .set({
+          count: changes.sinisterInfos.count,
+          last_resolution_date: changes.sinisterInfos.lastResolutionDate,
+          last_sinister_date: changes.sinisterInfos.lastSinisterDate,
+        })
+        .where('vehicle_sinister_infos.vehicle_id', '=', vehicle.id)
+        .executeTakeFirst();
+      if (!updatedVehicleSinisterInfosResult) {
+        return false;
+      }
+    }
+    if (changes.history) {
+      const deletePreviousHistoryItemsResult = await this.db
+        ?.deleteFrom('vehicle_history_item')
+        .where('vehicle_history_item.vehicle_id', '=', vehicle.id)
+        .executeTakeFirst();
+      if (!deletePreviousHistoryItemsResult) {
+        return false;
+      }
+      const updatedVehicleHistoryItemResult = await this.db
+        ?.insertInto('vehicle_history_item')
+        .values(
+          changes.history.map((item) => ({
+            vehicle_id: Number(vehicle.id),
+            date: item.date,
+            type: item.type,
+          }))
+        )
+        .executeTakeFirst();
+      if (!updatedVehicleHistoryItemResult) {
+        return false;
+      }
+    }
+    if (changes.technicalControls) {
+      const deletePreviousTechnicalControlItemsResult = await this.db
+        ?.deleteFrom('vehicle_technical_control_item')
+        .where('vehicle_technical_control_item.vehicle_id', '=', vehicle.id)
+        .executeTakeFirst();
+      if (!deletePreviousTechnicalControlItemsResult) {
+        return false;
+      }
+      const updatedVehicleTechnicalControlItemResult = await this.db
+        ?.insertInto('vehicle_technical_control_item')
+        .values(
+          changes.technicalControls.map((item) => ({
+            vehicle_id: Number(vehicle.id),
+            date: item.date,
+            result: item.result,
+            result_raw: item.resultRaw,
+            nature: item.nature,
+            km: item.km,
+          }))
+        )
+        .executeTakeFirst();
+      if (!updatedVehicleTechnicalControlItemResult) {
+        return false;
+      }
+    }
+    return true;
   }
   async removeVehicleByVin(id: string): Promise<boolean> {
     const result = await this.db

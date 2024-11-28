@@ -7,6 +7,8 @@ import { CreateGenesisBlockUseCase } from '../../application/use-cases/create-ge
 import { DeleteBlocksUseCase } from '../../application/use-cases/delete-blocks.use-case.js';
 import { DequeueTransactionsUseCase } from '../../application/use-cases/dequeue-transactions.use-case.js';
 import { GetBlocksUseCase } from '../../application/use-cases/get-blocks.use-case.js';
+import { GetVehicleOfTheChainByLicensePlate } from '../../application/use-cases/get-vehicle-of-the-chain-by-licence-plate.js';
+import { GetVehicleOfTheChainByVin } from '../../application/use-cases/get-vehicle-of-the-chain-by-vin.js';
 import { IsChainInitializedUseCase } from '../../application/use-cases/is-chain-initialized.use-case.js';
 import { NotifyTransactionCompletedUseCase } from '../../application/use-cases/notify-transaction-completed.use-case.js';
 import { PerformHealthCheckUseCase } from '../../application/use-cases/perform-health-check.use-case.js';
@@ -29,6 +31,7 @@ import { KyselyChainStateRepository } from '../../infrastructure/repositories/ch
 import { MongoDBChainRepository } from '../../infrastructure/repositories/mongodb-chain.repository.js';
 import { TsRestTransactionRepository } from '../../infrastructure/repositories/ts-rest-transaction.repository.js';
 import { FastifyApiServer } from '../api/servers/fastify-api-server.js';
+import { ChainController } from '../controllers/chain.controller.js';
 import { HealthcheckController } from '../controllers/healthcheck.controller.js';
 import { AbstractApplication } from './base.application.js';
 export class MainApplication extends AbstractApplication {
@@ -105,6 +108,10 @@ export class MainApplication extends AbstractApplication {
       chainStateRepository
     );
     const resetChainStateUseCase = new ResetChainStateUseCase(chainStateRepository);
+    const getVehicleOfTheChainByVin = new GetVehicleOfTheChainByVin(chainStateRepository);
+    const getVehicleOfTheChainByLicensePlate = new GetVehicleOfTheChainByLicensePlate(
+      chainStateRepository
+    );
     this.chainService = new ChainService(
       createBlockUseCase,
       getBlocksUseCase,
@@ -120,7 +127,9 @@ export class MainApplication extends AbstractApplication {
     this.chainStateService = new ChainStateService(
       persistTransactionToChainStateUseCase,
       resetChainStateUseCase,
-      getBlocksUseCase
+      getBlocksUseCase,
+      getVehicleOfTheChainByVin,
+      getVehicleOfTheChainByLicensePlate
     );
     const performHealthCheckUseCase = new PerformHealthCheckUseCase([
       new QueueHealthCheck(transactionQueue, 'transactionQueue'),
@@ -129,7 +138,8 @@ export class MainApplication extends AbstractApplication {
       new ChainStateRepositoryHealthCheck(chainStateRepository),
     ]);
     const healthcheckController = new HealthcheckController(performHealthCheckUseCase);
-    const api = new FastifyApiServer(this.config, healthcheckController);
+    const chainController = new ChainController(this.chainStateService);
+    const api = new FastifyApiServer(this.config, healthcheckController, chainController);
 
     this.managedResources = [
       transactionQueue,

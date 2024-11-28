@@ -8,17 +8,21 @@ import Fastify from 'fastify';
 
 import type { ManagedResource } from '../../../infrastructure/managed.resource.js';
 import type { Config } from '../../../infrastructure/ports/config-loader.port.js';
+import type { ChainController } from '../../controllers/chain.controller.js';
 import type { HealthcheckController } from '../../controllers/healthcheck.controller.js';
 import { openApiDocument } from '../open-api.js';
+import { ChainRouter } from '../routers/chain.router.js';
 import { HealthcheckRouter } from '../routers/healthcheck.router.js';
 
 export class FastifyApiServer implements ManagedResource {
   fastifyInstance: FastifyInstance;
   private healthcheckRouter: HealthcheckRouter;
+  private chainRouter: ChainRouter;
 
   constructor(
     private config: Config,
-    private healthcheckController: HealthcheckController
+    private healthcheckController: HealthcheckController,
+    private chainController: ChainController
   ) {
     const server = initServer();
     this.fastifyInstance = Fastify({
@@ -36,6 +40,7 @@ export class FastifyApiServer implements ManagedResource {
       origin: '*',
     });
     this.healthcheckRouter = new HealthcheckRouter(this.healthcheckController);
+    this.chainRouter = new ChainRouter(this.chainController);
 
     this.fastifyInstance.setErrorHandler((error, request, reply) => {
       reply.status(error.statusCode ?? 500).send({ message: error.message, data: error.cause });
@@ -45,6 +50,13 @@ export class FastifyApiServer implements ManagedResource {
       chainContract.health,
       {
         health: this.healthcheckRouter.health,
+      },
+      this.fastifyInstance
+    );
+    server.registerRouter(
+      chainContract.chain,
+      {
+        getVehicleOfTheChain: this.chainRouter.getVehicleOfTheChain,
       },
       this.fastifyInstance
     );
