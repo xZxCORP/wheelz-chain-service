@@ -1,15 +1,15 @@
 import type { ServiceHealthStatus } from '@zcorp/shared-typing-wheelz';
 
 import type { HealthCheckPort } from '../../../application/ports/health-check.port.js';
-import type { ChainRepository } from '../../../domain/repositories/chain.repository.js';
+import type { ChainStateRepository } from '../../../domain/repositories/chain-state.repository.js';
 
-export class ChainRepositoryHealthCheck implements HealthCheckPort {
-  name = 'chain';
+export class ChainStateRepositoryHealthCheck implements HealthCheckPort {
+  name = 'chainState';
 
-  constructor(private chainRepository: ChainRepository) {}
+  constructor(private chainStateRepository: ChainStateRepository) {}
 
   async isHealthy(): Promise<ServiceHealthStatus> {
-    const isRunning = await this.chainRepository.isRunning();
+    const isRunning = await this.chainStateRepository.isRunning();
     if (isRunning) {
       return {
         name: this.name,
@@ -19,7 +19,7 @@ export class ChainRepositoryHealthCheck implements HealthCheckPort {
       return {
         name: this.name,
         status: 'unhealthy',
-        message: 'Chain is not running',
+        message: 'Chain State is not running',
       };
     }
   }

@@ -14,6 +14,13 @@ export const configSchema = z.object({
     databaseName: z.string(),
     collectionName: z.string(),
   }),
+  chainState: z.object({
+    host: z.string(),
+    port: z.coerce.number(),
+    databaseName: z.string(),
+    username: z.string(),
+    password: z.string(),
+  }),
   api: z.object({
     host: z.string(),
     port: z.coerce.number(),

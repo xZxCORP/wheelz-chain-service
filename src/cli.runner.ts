@@ -84,6 +84,24 @@ async function main() {
         process.exit(1);
       }
     });
+  program
+    .command('refresh-chain-state')
+    .description('Refresh chain state')
+    .action(async (_options, command) => {
+      const app: CliApplication = command.parent.getOptionValue('app');
+
+      try {
+        await bootstrap(app);
+        app.logger.info('Refreshing chain state');
+        await app.refreshChainState();
+        app.logger.info('Chain state refreshed');
+        await app.stop();
+      } catch (error) {
+        app.logger.error('Error refreshing chain state', error);
+        await app.stop();
+        process.exit(1);
+      }
+    });
   await program.parseAsync(process.argv);
 }
 main();

@@ -41,6 +41,13 @@ export class EnvironmentConfigLoader implements ConfigLoaderPort {
         databaseName: process.env.CHAIN_DATABASE_NAME,
         collectionName: process.env.CHAIN_COLLECTION_NAME,
       },
+      chainState: {
+        host: process.env.CHAIN_STATE_DB_HOST,
+        port: process.env.CHAIN_STATE_DB_PORT,
+        databaseName: process.env.CHAIN_STATE_DB_NAME,
+        username: process.env.CHAIN_STATE_DB_USERNAME,
+        password: process.env.CHAIN_STATE_DB_PASSWORD,
+      },
     };
     const config = await configSchema.safeParseAsync(data);
     if (!config.success) {
