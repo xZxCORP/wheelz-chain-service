@@ -1,0 +1,44 @@
+services:
+  chain_state_db:
+    image: mysql
+    restart: always
+    ports:
+      - '3308:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: ${CHAIN_STATE_DB_PASSWORD}
+      MYSQL_DATABASE: ${CHAIN_STATE_DB_NAME}
+      MYSQL_USER: ${CHAIN_STATE_DB_USERNAME}
+      MYSQL_PASSWORD: ${CHAIN_STATE_DB_PASSWORD}
+    volumes:
+      - wheelz-chain-state-service-local-volume:/var/lib/mysql
+    networks:
+      - chain-services
+  app:
+    build:
+      context: .
+      target: development
+    ports:
+      - '${API_PORT}:${API_PORT}'
+    networks:
+      - chain-services
+      - wheelz-app
+    develop:
+      watch:
+        - path: ./src
+          target: /app/src
+          action: sync+restart
+        - path: .env
+          target: /app/.env
+          action: sync+restart
+        - path: package.json
+          action: rebuild
+        - path: package-lock.json
+          action: rebuild
+
+networks:
+  chain-services:
+  wheelz-app:
+    external: true
+volumes:
+  mongodb_data:
+  wheelz-chain-state-service-local-volume:
