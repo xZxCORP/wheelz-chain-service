@@ -36,6 +36,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
+          target: runner
           push: true
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/${{ vars.IMAGE_NAME }}:latest
