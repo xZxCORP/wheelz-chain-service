@@ -10,6 +10,7 @@ export class EnvironmentConfigLoader implements ConfigLoaderPort {
   constructor(path: string = '.env') {
     configDotenv({
       path,
+      override: true,
     });
   }
   async load(): Promise<Config> {
