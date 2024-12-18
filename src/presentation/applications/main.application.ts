@@ -9,6 +9,7 @@ import { DequeueTransactionsUseCase } from '../../application/use-cases/dequeue-
 import { GetBlocksUseCase } from '../../application/use-cases/get-blocks.use-case.js';
 import { GetVehicleOfTheChainByLicensePlate } from '../../application/use-cases/get-vehicle-of-the-chain-by-licence-plate.js';
 import { GetVehicleOfTheChainByVin } from '../../application/use-cases/get-vehicle-of-the-chain-by-vin.js';
+import { GetVehiclesOfTheChain } from '../../application/use-cases/get-vehicles-of-the-chain.use-case.js';
 import { IsChainInitializedUseCase } from '../../application/use-cases/is-chain-initialized.use-case.js';
 import { NotifyTransactionCompletedUseCase } from '../../application/use-cases/notify-transaction-completed.use-case.js';
 import { PerformHealthCheckUseCase } from '../../application/use-cases/perform-health-check.use-case.js';
@@ -112,6 +113,7 @@ export class MainApplication extends AbstractApplication {
     const getVehicleOfTheChainByLicensePlate = new GetVehicleOfTheChainByLicensePlate(
       chainStateRepository
     );
+    const getVehiclesOfTheChain = new GetVehiclesOfTheChain(chainStateRepository);
     this.chainService = new ChainService(
       createBlockUseCase,
       getBlocksUseCase,
@@ -129,7 +131,8 @@ export class MainApplication extends AbstractApplication {
       resetChainStateUseCase,
       getBlocksUseCase,
       getVehicleOfTheChainByVin,
-      getVehicleOfTheChainByLicensePlate
+      getVehicleOfTheChainByLicensePlate,
+      getVehiclesOfTheChain
     );
     const performHealthCheckUseCase = new PerformHealthCheckUseCase([
       new QueueHealthCheck(transactionQueue, 'transactionQueue'),

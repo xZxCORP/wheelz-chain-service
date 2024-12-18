@@ -4,6 +4,7 @@ import path, { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import type { UpdateVehicleTransactionChanges, Vehicle } from '@zcorp/shared-typing-wheelz';
+import type { PaginatedVehicles, Pagination, PaginationParameters } from '@zcorp/wheelz-contracts';
 import {
   FileMigrationProvider,
   Kysely,
@@ -39,15 +40,38 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
     private readonly logger: LoggerPort
   ) {}
 
-  async getVehicles(): Promise<Vehicle[]> {
-    const vins = await this.db?.selectFrom('vehicle').select('vehicle.vin').execute();
+  async getVehicles(paginationParameters: PaginationParameters): Promise<PaginatedVehicles> {
+    const { count } = await this.db!.selectFrom('vehicle')
+      .select(this.db!.fn.countAll<number>().as('count'))
+      .executeTakeFirstOrThrow();
+    const vins = await this.db
+      ?.selectFrom('vehicle')
+      .select('vehicle.vin')
+      .limit(paginationParameters.perPage)
+      .offset((paginationParameters.page - 1) * paginationParameters.perPage)
+      .execute();
     if (!vins) {
-      return [];
+      return {
+        items: [],
+        meta: {
+          page: paginationParameters.page,
+          perPage: paginationParameters.perPage,
+          total: 0,
+        },
+      };
     }
     const mappedVehicles = await Promise.all(
       vins.map((item) => this.mapInternalVehicleToVehicle(item.vin))
     );
-    return mappedVehicles.filter((item) => item !== null);
+    const meta: Pagination = {
+      page: paginationParameters.page,
+      perPage: paginationParameters.perPage,
+      total: count,
+    };
+    return {
+      items: mappedVehicles.filter((item) => item !== null),
+      meta,
+    };
   }
   async getVehicleByVin(vin: string): Promise<Vehicle | null> {
     return this.mapInternalVehicleToVehicle(vin);
