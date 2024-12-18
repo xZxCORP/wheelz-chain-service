@@ -7,9 +7,9 @@ export class ChainRouter {
   constructor(private readonly chainController: ChainController) {}
 
   getVehicleOfTheChain = async (
-    _input: ServerInferRequest<typeof chainContract.chain.getVehicleOfTheChain>
+    input: ServerInferRequest<typeof chainContract.chain.getVehicleOfTheChain>
   ): Promise<ServerInferResponses<typeof chainContract.chain.getVehicleOfTheChain>> => {
-    if (!_input.query.vin && !_input.query.licensePlate) {
+    if (!input.query.vin && !input.query.licensePlate) {
       return {
         status: 400,
         body: {
@@ -17,8 +17,8 @@ export class ChainRouter {
         },
       };
     }
-    if (_input.query.vin) {
-      const result = await this.chainController.getVehicleOfTheChainByVin(_input.query.vin);
+    if (input.query.vin) {
+      const result = await this.chainController.getVehicleOfTheChainByVin(input.query.vin);
       if (!result) {
         return {
           status: 404,
@@ -33,7 +33,7 @@ export class ChainRouter {
       };
     }
     const result = await this.chainController.getVehicleOfTheChainByLicensePlate(
-      _input.query.licensePlate!
+      input.query.licensePlate!
     );
     if (!result) {
       return {
@@ -44,5 +44,35 @@ export class ChainRouter {
       };
     }
     return { status: 200, body: result };
+  };
+
+  getAllVehiclesOfTheChain = async (
+    input: ServerInferRequest<typeof chainContract.chain.getAllVehiclesOfTheChain>
+  ): Promise<ServerInferResponses<typeof chainContract.chain.getAllVehiclesOfTheChain>> => {
+    const result = await this.chainController.getVehiclesOfTheChain(input.query);
+    return {
+      status: 200,
+      body: result,
+    };
+  };
+  refreshChainState = async (
+    input: ServerInferRequest<typeof chainContract.chain.refreshChainState>
+  ): Promise<ServerInferResponses<typeof chainContract.chain.refreshChainState>> => {
+    return {
+      status: 200,
+      body: {
+        message: 'Refreshed',
+      },
+    };
+  };
+  processTransactionBatch = async (
+    input: ServerInferRequest<typeof chainContract.chain.processTransactionBatch>
+  ): Promise<ServerInferResponses<typeof chainContract.chain.processTransactionBatch>> => {
+    return {
+      status: 200,
+      body: {
+        message: 'Processed',
+      },
+    };
   };
 }

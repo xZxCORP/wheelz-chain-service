@@ -2,6 +2,7 @@ import cors from '@fastify/cors';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUI from '@fastify/swagger-ui';
 import { initServer } from '@ts-rest/fastify';
+import { authPlugin, requireAuth } from '@zcorp/shared-fastify';
 import { chainContract } from '@zcorp/wheelz-contracts';
 import type { FastifyInstance } from 'fastify';
 import Fastify from 'fastify';
@@ -39,6 +40,10 @@ export class FastifyApiServer implements ManagedResource {
     this.fastifyInstance.register(cors, {
       origin: '*',
     });
+    this.fastifyInstance.register(authPlugin, {
+      authServiceUrl: config.authService.url,
+    });
+
     this.healthcheckRouter = new HealthcheckRouter(this.healthcheckController);
     this.chainRouter = new ChainRouter(this.chainController);
 
@@ -56,17 +61,60 @@ export class FastifyApiServer implements ManagedResource {
     server.registerRouter(
       chainContract.chain,
       {
-        getVehicleOfTheChain: this.chainRouter.getVehicleOfTheChain,
+        getVehicleOfTheChain: {
+          handler: this.chainRouter.getVehicleOfTheChain,
+          hooks: {
+            onRequest: [requireAuth()],
+          },
+        },
+        getAllVehiclesOfTheChain: {
+          handler: this.chainRouter.getAllVehiclesOfTheChain,
+          hooks: {
+            //TODO: adding admin role
+            onRequest: [requireAuth()],
+          },
+        },
+        refreshChainState: {
+          handler: this.chainRouter.refreshChainState,
+          hooks: {
+            //TODO: adding admin role
+            onRequest: [requireAuth()],
+          },
+        },
+        processTransactionBatch: {
+          handler: this.chainRouter.processTransactionBatch,
+          hooks: {
+            //TODO: adding admin role
+            onRequest: [requireAuth()],
+          },
+        },
       },
       this.fastifyInstance
     );
 
     this.fastifyInstance
       .register(fastifySwagger, {
-        transformObject: () => openApiDocument,
+        transformObject: () => ({
+          ...openApiDocument,
+          security: [{ BearerAuth: [] }],
+          components: {
+            securitySchemes: {
+              BearerAuth: {
+                type: 'http',
+                scheme: 'bearer',
+                bearerFormat: 'JWT',
+              },
+            },
+          },
+        }),
       })
       .register(fastifySwaggerUI, {
         routePrefix: '/ui',
+        uiConfig: {
+          docExpansion: 'list',
+          deepLinking: true,
+          persistAuthorization: true,
+        },
       });
   }
 

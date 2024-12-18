@@ -1,3 +1,5 @@
+import type { PaginationParameters } from '@zcorp/wheelz-contracts';
+
 import type { ChainStateService } from '../../application/services/chain-state.service.js';
 
 export class ChainController {
@@ -8,5 +10,8 @@ export class ChainController {
   }
   getVehicleOfTheChainByLicensePlate(licensePlate: string) {
     return this.chainStateService.getVehicleByLicensePlate(licensePlate);
+  }
+  getVehiclesOfTheChain(paginationParameters: PaginationParameters) {
+    return this.chainStateService.getVehicles(paginationParameters);
   }
 }
