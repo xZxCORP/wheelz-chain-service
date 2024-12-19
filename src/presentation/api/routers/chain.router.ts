@@ -58,6 +58,7 @@ export class ChainRouter {
   refreshChainState = async (
     input: ServerInferRequest<typeof chainContract.chain.refreshChainState>
   ): Promise<ServerInferResponses<typeof chainContract.chain.refreshChainState>> => {
+    await this.chainController.refreshChain();
     return {
       status: 200,
       body: {
@@ -68,6 +69,7 @@ export class ChainRouter {
   processTransactionBatch = async (
     input: ServerInferRequest<typeof chainContract.chain.processTransactionBatch>
   ): Promise<ServerInferResponses<typeof chainContract.chain.processTransactionBatch>> => {
+    await this.chainController.processTransactionBatch(input.body.count ?? 10);
     return {
       status: 200,
       body: {
