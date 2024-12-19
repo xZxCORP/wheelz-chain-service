@@ -141,7 +141,7 @@ export class MainApplication extends AbstractApplication {
       new ChainStateRepositoryHealthCheck(chainStateRepository),
     ]);
     const healthcheckController = new HealthcheckController(performHealthCheckUseCase);
-    const chainController = new ChainController(this.chainStateService);
+    const chainController = new ChainController(this.chainStateService, this.chainService);
     const api = new FastifyApiServer(this.config, healthcheckController, chainController);
 
     this.managedResources = [
@@ -181,11 +181,7 @@ export class MainApplication extends AbstractApplication {
       await this.chainStateService.refreshChainState();
       this.logger.info('End transaction processing job');
     });
-    // const refreshChainStateJob = new CronJob('0 0 */1 * * *', async () => {
-    //   this.logger.info('Begin chain state refresh job');
-    //   await this.chainService.refreshChainState();
-    //   this.logger.info('End chain state refresh job');
-    // });
+
     this.jobs.push(processTransactionJob);
     for (const job of this.jobs) {
       job.start();
