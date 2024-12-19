@@ -1,7 +1,8 @@
 import type { UpdateVehicleTransactionChanges, Vehicle } from '@zcorp/shared-typing-wheelz';
+import type { PaginatedVehicles, PaginationParameters } from '@zcorp/wheelz-contracts';
 
 export interface ChainStateRepository {
-  getVehicles(): Promise<Vehicle[]>;
+  getVehicles(paginationParameters: PaginationParameters): Promise<PaginatedVehicles>;
   getVehicleByVin(vin: string): Promise<Vehicle | null>;
   getVehicleByLicensePlate(licensePlate: string): Promise<Vehicle | null>;
   saveVehicle(vehicle: Vehicle): Promise<boolean>;
