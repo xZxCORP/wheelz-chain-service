@@ -125,7 +125,8 @@ export class CliApplication extends AbstractApplication {
       getBlocksUseCase,
       getVehicleOfTheChainByVin,
       getVehicleOfTheChainByLicensePlate,
-      getVehiclesOfTheChain
+      getVehiclesOfTheChain,
+      this.chainService
     );
 
     this.managedResources = [

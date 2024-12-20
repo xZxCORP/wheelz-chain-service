@@ -132,7 +132,8 @@ export class MainApplication extends AbstractApplication {
       getBlocksUseCase,
       getVehicleOfTheChainByVin,
       getVehicleOfTheChainByLicensePlate,
-      getVehiclesOfTheChain
+      getVehiclesOfTheChain,
+      this.chainService
     );
     const performHealthCheckUseCase = new PerformHealthCheckUseCase([
       new QueueHealthCheck(transactionQueue, 'transactionQueue'),
