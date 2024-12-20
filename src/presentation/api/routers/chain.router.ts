@@ -77,4 +77,23 @@ export class ChainRouter {
       },
     };
   };
+  verifyChainState = async (
+    _input: ServerInferRequest<typeof chainContract.chain.verifyChainState>
+  ): Promise<ServerInferResponses<typeof chainContract.chain.verifyChainState>> => {
+    const result = await this.chainController.verifyChain();
+    if (!result) {
+      return {
+        status: 500,
+        body: {
+          message: 'Chain is not valid',
+        },
+      };
+    }
+    return {
+      status: 200,
+      body: {
+        message: 'Chain is valid',
+      },
+    };
+  };
 }
