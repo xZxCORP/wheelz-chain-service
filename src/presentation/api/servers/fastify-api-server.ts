@@ -88,6 +88,13 @@ export class FastifyApiServer implements ManagedResource {
             onRequest: [requireAuth()],
           },
         },
+        verifyChainState: {
+          handler: this.chainRouter.verifyChainState,
+          hooks: {
+            //TODO: adding admin role
+            onRequest: [requireAuth()],
+          },
+        },
       },
       this.fastifyInstance
     );
