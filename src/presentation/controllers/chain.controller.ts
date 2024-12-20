@@ -24,4 +24,7 @@ export class ChainController {
   processTransactionBatch(batchSize: number = 10) {
     return this.chainService.processTransactionBatch(batchSize);
   }
+  verifyChain() {
+    return this.chainService.verifyChain();
+  }
 }
