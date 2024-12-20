@@ -13,7 +13,6 @@ export class TsRestTransactionRepository implements TransactionRepository {
     typeof authenticationContract,
     { baseUrl: ''; baseHeaders: {} }
   >;
-  private cachedToken: string | null = null;
   constructor(
     private readonly transactionServiceUrl: string,
     private readonly authServiceUrl: string,
@@ -40,13 +39,8 @@ export class TsRestTransactionRepository implements TransactionRepository {
     return null;
   }
   private async getToken(): Promise<string | null> {
-    if (this.cachedToken) {
-      return this.cachedToken;
-    }
     const token = await this.fetchAndStoreNewToken();
-    if (token) {
-      this.cachedToken = token;
-    }
+
     return token;
   }
   async getById(transactionId: string): Promise<VehicleTransaction | null> {
@@ -66,8 +60,8 @@ export class TsRestTransactionRepository implements TransactionRepository {
       return transaction.body;
     }
     if (transaction.status === 401) {
-      this.cachedToken = null;
       //TODO: retry
+      return null;
     }
     return null;
   }
