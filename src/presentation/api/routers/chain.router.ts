@@ -85,14 +85,14 @@ export class ChainRouter {
       return {
         status: 500,
         body: {
-          message: 'Chain is not valid',
+          message: "La chaine n'est pas valide",
         },
       };
     }
     return {
       status: 200,
       body: {
-        message: 'Chain is valid',
+        message: 'La chaine est valide',
       },
     };
   };
