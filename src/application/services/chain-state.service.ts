@@ -6,6 +6,7 @@ import type { GetVehicleOfTheChainByVin } from '../use-cases/get-vehicle-of-the-
 import type { GetVehiclesOfTheChain } from '../use-cases/get-vehicles-of-the-chain.use-case.js';
 import type { PersistTransactionToChainStateUseCase } from '../use-cases/persist-transaction-to-chain-state.use-case.js';
 import type { ResetChainStateUseCase } from '../use-cases/reset-chain-state.use-case.js';
+import type { ChainService } from './chain.service.js';
 
 export class ChainStateService {
   constructor(
@@ -14,11 +15,17 @@ export class ChainStateService {
     private readonly getBlocksUseCase: GetBlocksUseCase,
     private readonly getVehicleOfTheChainByVin: GetVehicleOfTheChainByVin,
     private readonly getVehicleOfTheChainByLicensePlate: GetVehicleOfTheChainByLicensePlate,
-    private readonly getVehiclesOfTheChain: GetVehiclesOfTheChain
+    private readonly getVehiclesOfTheChain: GetVehiclesOfTheChain,
+    private readonly chainService: ChainService
   ) {}
 
   async refreshChainState() {
+    const verifyChain = await this.chainService.verifyChain();
+    if (!verifyChain) {
+      throw new Error("La chaine n'est pas valide");
+    }
     await this.resetChainStateUseCase.execute();
+
     const blocks = await this.getBlocksUseCase.execute();
     const sortedBlocks = blocks.sort(
       (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
