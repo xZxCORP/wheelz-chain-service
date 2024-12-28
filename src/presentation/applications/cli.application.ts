@@ -108,7 +108,7 @@ export class CliApplication extends AbstractApplication {
       chainStateRepository
     );
     const getVehiclesOfTheChain = new GetVehiclesOfTheChain(chainStateRepository);
-    const getChainStatsUseCase = new GetChainStatsUseCase();
+    const getChainStatsUseCase = new GetChainStatsUseCase(chainRepository);
     this.chainService = new ChainService(
       createBlockUseCase,
       getBlocksUseCase,

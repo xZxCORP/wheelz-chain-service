@@ -25,6 +25,7 @@
     "@zcorp/wheelz-contracts": "latest",
     "commander": "^12.1.0",
     "cron": "^3.1.8",
+    "dayjs": "^1.11.13",
     "dotenv": "^16.4.5",
     "fastify": "^4.28.1",
     "kysely": "^0.27.4",
