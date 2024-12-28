@@ -57,13 +57,17 @@ export class GetChainStatsUseCase {
       });
     }
     const lastExecutionDate = dayjs(lastBlock!.timestamp).format('YYYY-MM-DD');
+    const lastExecution =
+      blocks.length < 2
+        ? null
+        : {
+            date: lastExecutionDate,
+            newTransactions: dateMap.get(lastExecutionDate)!.newTransactions ?? 0,
+          };
     return {
       evolutionOfTransactions,
       evolutionOfVehicles,
-      lastExecution: {
-        date: lastExecutionDate,
-        newTransactions: dateMap.get(lastExecutionDate)!.newTransactions ?? 0,
-      },
+      lastExecution,
     };
   }
 }
