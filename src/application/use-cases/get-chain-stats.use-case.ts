@@ -17,7 +17,10 @@ export class GetChainStatsUseCase {
       (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     );
     const lastBlock = sortedBlocks.at(-1);
-    const dateMap = new Map<string, { totalTransactions: number; totalVehicles: number }>();
+    const dateMap = new Map<
+      string,
+      { totalTransactions: number; newTransactions: number; totalVehicles: number }
+    >();
     const evolutionOfTransactions: ChainStats['evolutionOfTransactions'] = [];
     const evolutionOfVehicles: ChainStats['evolutionOfVehicles'] = [];
     let totalTransactions = 0;
@@ -27,6 +30,7 @@ export class GetChainStatsUseCase {
       const data = dateMap.get(formattedDate) ?? {
         totalTransactions: totalTransactions,
         totalVehicles: totalVehicles,
+        newTransactions: 0,
       };
       totalTransactions += block.transactions.length;
       for (const transaction of block.transactions) {
@@ -38,6 +42,7 @@ export class GetChainStatsUseCase {
       }
       data.totalTransactions = totalTransactions;
       data.totalVehicles = totalVehicles;
+      data.newTransactions += block.transactions.length;
 
       dateMap.set(formattedDate, data);
     }
@@ -51,12 +56,13 @@ export class GetChainStatsUseCase {
         value: data.totalVehicles,
       });
     }
+    const lastExecutionDate = dayjs(lastBlock!.timestamp).format('YYYY-MM-DD');
     return {
       evolutionOfTransactions,
       evolutionOfVehicles,
       lastExecution: {
-        date: dayjs(lastBlock!.timestamp).format('YYYY-MM-DD'),
-        newTransactions: lastBlock!.transactions.length,
+        date: lastExecutionDate,
+        newTransactions: dateMap.get(lastExecutionDate)!.newTransactions ?? 0,
       },
     };
   }
