@@ -7,6 +7,7 @@ import { CreateGenesisBlockUseCase } from '../../application/use-cases/create-ge
 import { DeleteBlocksUseCase } from '../../application/use-cases/delete-blocks.use-case.js';
 import { DequeueTransactionsUseCase } from '../../application/use-cases/dequeue-transactions.use-case.js';
 import { GetBlocksUseCase } from '../../application/use-cases/get-blocks.use-case.js';
+import { GetChainStatsUseCase } from '../../application/use-cases/get-chain-stats.use-case.js';
 import { GetVehicleOfTheChainByLicensePlate } from '../../application/use-cases/get-vehicle-of-the-chain-by-licence-plate.js';
 import { GetVehicleOfTheChainByVin } from '../../application/use-cases/get-vehicle-of-the-chain-by-vin.js';
 import { GetVehiclesOfTheChain } from '../../application/use-cases/get-vehicles-of-the-chain.use-case.js';
@@ -107,6 +108,7 @@ export class CliApplication extends AbstractApplication {
       chainStateRepository
     );
     const getVehiclesOfTheChain = new GetVehiclesOfTheChain(chainStateRepository);
+    const getChainStatsUseCase = new GetChainStatsUseCase(chainRepository);
     this.chainService = new ChainService(
       createBlockUseCase,
       getBlocksUseCase,
@@ -117,6 +119,7 @@ export class CliApplication extends AbstractApplication {
       createGenesisBlockUseCase,
       dequeueTransactionsUseCase,
       notifyTransactionCompletedUseCase,
+      getChainStatsUseCase,
       this.logger
     );
     this.chainStateService = new ChainStateService(

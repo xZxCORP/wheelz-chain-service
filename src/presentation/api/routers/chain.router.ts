@@ -56,7 +56,7 @@ export class ChainRouter {
     };
   };
   refreshChainState = async (
-    input: ServerInferRequest<typeof chainContract.chain.refreshChainState>
+    _input: ServerInferRequest<typeof chainContract.chain.refreshChainState>
   ): Promise<ServerInferResponses<typeof chainContract.chain.refreshChainState>> => {
     await this.chainController.refreshChain();
     return {
@@ -94,6 +94,15 @@ export class ChainRouter {
       body: {
         message: 'La chaine est valide',
       },
+    };
+  };
+  stats = async (
+    _input: ServerInferRequest<typeof chainContract.chain.stats>
+  ): Promise<ServerInferResponses<typeof chainContract.chain.stats>> => {
+    const result = await this.chainController.getChainStats();
+    return {
+      status: 200,
+      body: result,
     };
   };
 }

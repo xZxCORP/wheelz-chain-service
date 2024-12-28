@@ -1,4 +1,4 @@
-import type { VehicleTransaction } from '@zcorp/shared-typing-wheelz';
+import type { ChainStats, VehicleTransaction } from '@zcorp/shared-typing-wheelz';
 
 import type { LoggerPort } from '../ports/logger.port.js';
 import type { CreateBlockUseCase } from '../use-cases/create-block.use-case.js';
@@ -6,6 +6,7 @@ import type { CreateGenesisBlockUseCase } from '../use-cases/create-genesis-bloc
 import type { DeleteBlocksUseCase } from '../use-cases/delete-blocks.use-case.js';
 import type { DequeueTransactionsUseCase } from '../use-cases/dequeue-transactions.use-case.js';
 import type { GetBlocksUseCase } from '../use-cases/get-blocks.use-case.js';
+import type { GetChainStatsUseCase } from '../use-cases/get-chain-stats.use-case.js';
 import type { IsChainInitializedUseCase } from '../use-cases/is-chain-initialized.use-case.js';
 import type { NotifyTransactionCompletedUseCase } from '../use-cases/notify-transaction-completed.use-case.js';
 import type { VerifyBlockPairUseCase } from '../use-cases/verify-block-pair.use-case.js';
@@ -22,6 +23,7 @@ export class ChainService {
     private readonly createGenesisBlockUseCase: CreateGenesisBlockUseCase,
     private readonly dequeueTransactionsUseCase: DequeueTransactionsUseCase,
     private readonly notifyTransactionCompletedUseCase: NotifyTransactionCompletedUseCase,
+    private readonly getChainStatsUseCase: GetChainStatsUseCase,
     private readonly logger: LoggerPort
   ) {}
   async initializeChain(): Promise<void> {
@@ -102,5 +104,8 @@ export class ChainService {
       }
     }
     return true;
+  }
+  async getChainStats(): Promise<ChainStats> {
+    return this.getChainStatsUseCase.execute();
   }
 }
