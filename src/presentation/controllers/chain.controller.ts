@@ -27,4 +27,7 @@ export class ChainController {
   verifyChain() {
     return this.chainService.verifyChain();
   }
+  getChainStats() {
+    return this.chainService.getChainStats();
+  }
 }
