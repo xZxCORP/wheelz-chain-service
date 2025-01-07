@@ -381,6 +381,7 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
       user: this.connection.username,
       password: this.connection.password,
       connectionLimit: 10,
+      maxIdle: 0,
     });
 
     const dialect = new MysqlDialect({
