@@ -2,7 +2,7 @@ import cors from '@fastify/cors';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUI from '@fastify/swagger-ui';
 import { initServer } from '@ts-rest/fastify';
-import { authPlugin, requireAuth } from '@zcorp/shared-fastify';
+import { authPlugin, requireAllRoles, requireAuth } from '@zcorp/shared-fastify';
 import { chainContract } from '@zcorp/wheelz-contracts';
 import type { FastifyInstance } from 'fastify';
 import Fastify from 'fastify';
@@ -71,35 +71,35 @@ export class FastifyApiServer implements ManagedResource {
           handler: this.chainRouter.getAllVehiclesOfTheChain,
           hooks: {
             //TODO: adding admin role
-            onRequest: [requireAuth()],
+            onRequest: [requireAuth(), requireAllRoles(['admin'])],
           },
         },
         refreshChainState: {
           handler: this.chainRouter.refreshChainState,
           hooks: {
             //TODO: adding admin role
-            onRequest: [requireAuth()],
+            onRequest: [requireAuth(), requireAllRoles(['admin'])],
           },
         },
         processTransactionBatch: {
           handler: this.chainRouter.processTransactionBatch,
           hooks: {
             //TODO: adding admin role
-            onRequest: [requireAuth()],
+            onRequest: [requireAuth(), requireAllRoles(['admin'])],
           },
         },
         verifyChainState: {
           handler: this.chainRouter.verifyChainState,
           hooks: {
             //TODO: adding admin role
-            onRequest: [requireAuth()],
+            onRequest: [requireAuth(), requireAllRoles(['admin'])],
           },
         },
         stats: {
           handler: this.chainRouter.stats,
           hooks: {
             //TODO: adding admin role
-            onRequest: [requireAuth()],
+            onRequest: [requireAuth(), requireAllRoles(['admin'])],
           },
         },
       },

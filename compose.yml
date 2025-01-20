@@ -13,7 +13,7 @@ services:
       - wheelz-chain-state-service-local-volume:/var/lib/mysql
     networks:
       - chain-services
-  app:
+  chain_api:
     build:
       context: .
       target: development

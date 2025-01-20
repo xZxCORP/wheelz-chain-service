@@ -9,6 +9,7 @@ export class VerifyTransactionUseCase {
       JSON.stringify({
         action: transaction.action,
         data: transaction.data,
+        withAnomaly: transaction.withAnomaly,
       }),
       transaction.dataSignature
     );
