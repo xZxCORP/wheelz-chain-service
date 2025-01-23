@@ -30,4 +30,4 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm install
 COPY . .
-CMD ["sh", "-c", "./wait-for-it.sh rabbitmq:5672 mongo:27017 chain_state_db:3306 -- npm run dev"]
+CMD ["sh", "-c", "./wait-for-it.sh rabbitmq:5672 mongo:27017 chain_state_db:5432 -- npm run dev"]
