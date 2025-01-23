@@ -1,16 +1,15 @@
 services:
   chain_state_db:
-    image: mysql
+    image: postgres:17.2
     restart: always
     ports:
-      - '3308:3306'
+      - '5433:5432'
     environment:
-      MYSQL_ROOT_PASSWORD: ${CHAIN_STATE_DB_PASSWORD}
-      MYSQL_DATABASE: ${CHAIN_STATE_DB_NAME}
-      MYSQL_USER: ${CHAIN_STATE_DB_USERNAME}
-      MYSQL_PASSWORD: ${CHAIN_STATE_DB_PASSWORD}
+      POSTGRES_DB: ${CHAIN_STATE_DB_NAME}
+      POSTGRES_USER: ${CHAIN_STATE_DB_USERNAME}
+      POSTGRES_PASSWORD: ${CHAIN_STATE_DB_PASSWORD}
     volumes:
-      - wheelz-chain-state-service-local-volume:/var/lib/mysql
+      - wheelz-chain-state-service-local-volume:/var/lib/postgresql/data
     networks:
       - chain-services
   chain_api:

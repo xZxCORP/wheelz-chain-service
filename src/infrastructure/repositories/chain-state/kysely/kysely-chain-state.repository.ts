@@ -10,14 +10,15 @@ import {
   Kysely,
   type MigrationResult,
   Migrator,
-  MysqlDialect,
+  PostgresDialect,
 } from 'kysely';
-import { createPool, type Pool } from 'mysql2';
+import pg from 'pg';
 
 import type { LoggerPort } from '../../../../application/ports/logger.port.js';
 import type { ChainStateRepository } from '../../../../domain/repositories/chain-state.repository.js';
 import type { ManagedResource } from '../../../managed.resource.js';
 import type { KyselyChainStateDatabase } from './chain-state.database.js';
+
 export interface KyselyConnection {
   host: string;
   port: number;
@@ -30,9 +31,8 @@ export type DeepPartial<T> = T extends object
       [P in keyof T]?: DeepPartial<T[P]>;
     }
   : T;
-
 export class KyselyChainStateRepository implements ChainStateRepository, ManagedResource {
-  private pool: Pool | null = null;
+  private pool: pg.Pool | null = null;
   private migrator: Migrator | null = null;
   private db: Kysely<KyselyChainStateDatabase> | null = null;
   constructor(
@@ -92,11 +92,12 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
     const insertedVehicleResult = await this.db
       ?.insertInto('vehicle')
       .values({ vin: vehicle.vin })
+      .returning('id')
       .executeTakeFirst();
-    if (!insertedVehicleResult || !insertedVehicleResult.insertId) {
+    if (!insertedVehicleResult || !insertedVehicleResult.id) {
       return false;
     }
-    const vehicleId = insertedVehicleResult.insertId;
+    const vehicleId = insertedVehicleResult.id;
 
     const insertedVehicleFeaturesResult = await this.db
       ?.insertInto('vehicle_features')
@@ -130,8 +131,9 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
         pollution_code: vehicle.features.pollutionCode,
         power_mass_ratio: vehicle.features.powerMassRatio,
       })
+      .returning('id')
       .executeTakeFirst();
-    if (!insertedVehicleFeaturesResult || !insertedVehicleFeaturesResult.insertId) {
+    if (!insertedVehicleFeaturesResult || !insertedVehicleFeaturesResult.id) {
       return false;
     }
     const insertedVehicleInfosResult = await this.db
@@ -144,8 +146,9 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
         license_plate: vehicle.infos.licensePlate,
         siv_conversion_date: vehicle.infos.sivConversionDate,
       })
+      .returning('id')
       .executeTakeFirst();
-    if (!insertedVehicleInfosResult || !insertedVehicleInfosResult.insertId) {
+    if (!insertedVehicleInfosResult || !insertedVehicleInfosResult.id) {
       return false;
     }
     if (vehicle.history.length > 0) {
@@ -158,8 +161,9 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
             type: item.type,
           }))
         )
+        .returning('id')
         .executeTakeFirst();
-      if (!insertedVehicleHistoryItemResult || !insertedVehicleHistoryItemResult.insertId) {
+      if (!insertedVehicleHistoryItemResult || !insertedVehicleHistoryItemResult.id) {
         return false;
       }
     }
@@ -176,10 +180,11 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
             km: item.km,
           }))
         )
+        .returning('id')
         .executeTakeFirst();
       if (
         !insertedVehicleTechnicalControlItemResult ||
-        !insertedVehicleTechnicalControlItemResult.insertId
+        !insertedVehicleTechnicalControlItemResult.id
       ) {
         return false;
       }
@@ -192,8 +197,9 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
         last_resolution_date: vehicle.sinisterInfos.lastResolutionDate,
         last_sinister_date: vehicle.sinisterInfos.lastSinisterDate,
       })
+      .returning('id')
       .executeTakeFirst();
-    if (!insertedVehicleSinisterInfosResult || !insertedVehicleSinisterInfosResult.insertId) {
+    if (!insertedVehicleSinisterInfosResult || !insertedVehicleSinisterInfosResult.id) {
       return false;
     }
     return true;
@@ -295,6 +301,7 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
             type: item.type,
           }))
         )
+        .returning('id')
         .executeTakeFirst();
       if (!updatedVehicleHistoryItemResult) {
         return false;
@@ -320,6 +327,7 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
             km: item.km,
           }))
         )
+        .returning('id')
         .executeTakeFirst();
       if (!updatedVehicleTechnicalControlItemResult) {
         return false;
@@ -341,22 +349,7 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
     if (!this.pool) {
       return false;
     }
-    return new Promise((resolve) => {
-      this.pool!.getConnection((error, connection) => {
-        if (error) {
-          resolve(false);
-        } else {
-          connection.ping((pingError) => {
-            if (pingError) {
-              resolve(false);
-            } else {
-              connection.release();
-              resolve(true);
-            }
-          });
-        }
-      });
-    });
+    return !this.pool.ended;
   }
   async reset(): Promise<boolean> {
     if (this.db) {
@@ -374,17 +367,16 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
   }
 
   async initialize(): Promise<void> {
-    const pool = createPool({
+    const pool = new pg.Pool({
       database: this.connection.database,
       host: this.connection.host,
       port: this.connection.port,
       user: this.connection.username,
       password: this.connection.password,
-      connectionLimit: 10,
-      maxIdle: 0,
+      max: 10,
     });
 
-    const dialect = new MysqlDialect({
+    const dialect = new PostgresDialect({
       pool,
     });
     this.pool = pool;
