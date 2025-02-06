@@ -7,6 +7,9 @@ export class PersistTransactionToChainStateUseCase {
   async execute(transaction: VehicleTransaction) {
     switch (transaction.action) {
       case 'create': {
+        if (!transaction.data.userId) {
+          transaction.data.userId = transaction.userId;
+        }
         await this.chainStateRepository.saveVehicle(transaction.data);
         break;
       }

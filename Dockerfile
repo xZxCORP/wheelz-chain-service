@@ -3,14 +3,14 @@ FROM node:20-alpine AS base
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci --only=production
+COPY package.json pnpm-lock.yaml ./
+RUN npm install -g pnpm && pnpm install --prod
 
 FROM base AS builder
 WORKDIR /app
 COPY . .
-RUN npm ci
-RUN npm run build
+RUN npm install -g pnpm && pnpm install
+RUN pnpm run build
 
 FROM base AS runner
 WORKDIR /app
@@ -27,7 +27,7 @@ CMD ["node", "dist/main.runner.js"]
 FROM base AS development
 RUN apk add --no-cache bash
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm install
+COPY package.json pnpm-lock.yaml ./
+RUN npm install -g pnpm && pnpm install
 COPY . .
-CMD ["sh", "-c", "./wait-for-it.sh rabbitmq:5672 mongo:27017 chain_state_db:5432 -- npm run dev"]
+CMD ["sh", "-c", "./wait-for-it.sh rabbitmq:5672 mongo:27017 chain_state_db:5432 -- pnpm run dev"]
