@@ -10,6 +10,7 @@ export interface KyselyChainStateDatabase {
 export interface KyselyVehicleTable {
   id: Generated<number>;
   vin: string;
+  user_id: string;
   created_at: Generated<Date>;
 }
 

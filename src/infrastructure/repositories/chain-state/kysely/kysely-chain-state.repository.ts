@@ -91,7 +91,7 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
   async saveVehicle(vehicle: Vehicle): Promise<boolean> {
     const insertedVehicleResult = await this.db
       ?.insertInto('vehicle')
-      .values({ vin: vehicle.vin })
+      .values({ vin: vehicle.vin, user_id: vehicle.userId })
       .returning('id')
       .executeTakeFirst();
     if (!insertedVehicleResult || !insertedVehicleResult.id) {
@@ -454,6 +454,7 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
       .execute();
     const mappedVehicle: Vehicle = {
       vin,
+      userId: joinedVehicle.user_id,
       features: {
         brand: joinedVehicle.brand,
         model: joinedVehicle.model,
