@@ -10,6 +10,7 @@ export class VerifyTransactionUseCase {
         action: transaction.action,
         data: transaction.data,
         withAnomaly: transaction.withAnomaly,
+        userId: transaction.userId,
       }),
       transaction.dataSignature
     );
