@@ -4,7 +4,7 @@ import type { PaginatedVehicles, PaginationParameters } from '@zcorp/wheelz-cont
 export interface ChainStateRepository {
   getVehicles(
     paginationParameters: PaginationParameters,
-    allowedUserIds: string[]
+    allowedUserIds?: string[]
   ): Promise<PaginatedVehicles>;
   getVehicleByVin(vin: string): Promise<Vehicle | null>;
   getVehicleByLicensePlate(licensePlate: string): Promise<Vehicle | null>;

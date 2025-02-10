@@ -54,6 +54,7 @@ export class ChainRouter {
     const result = await this.chainController.getVehiclesOfTheChain(
       input.query,
       String(request.user!.userId),
+      request.user!.roles,
       String(request.user!.companyId)
     );
     return {

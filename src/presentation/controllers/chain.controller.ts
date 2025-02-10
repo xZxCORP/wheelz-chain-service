@@ -18,9 +18,10 @@ export class ChainController {
   getVehiclesOfTheChain(
     paginationParameters: PaginationParameters,
     userId: string,
+    roles: string[],
     companyId?: string
   ) {
-    return this.chainStateService.getVehicles(paginationParameters, userId, companyId);
+    return this.chainStateService.getVehicles(paginationParameters, userId, roles, companyId);
   }
   refreshChain() {
     return this.chainStateService.refreshChainState();

@@ -51,12 +51,16 @@ export class ChainStateService {
   async getVehicles(
     paginationParameters: PaginationParameters,
     userId: string,
+    roles: string[],
     companyId?: string
   ): Promise<PaginatedVehicles> {
     const defaultResponse: PaginatedVehicles = {
       items: [],
       meta: { ...paginationParameters, total: 0 },
     };
+    if (roles.includes('admin')) {
+      return this.getVehiclesOfTheChain.execute(paginationParameters);
+    }
     //TODO: adding filter when particular
     if (!companyId) {
       return defaultResponse;
