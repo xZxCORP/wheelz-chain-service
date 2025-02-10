@@ -44,9 +44,13 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
     paginationParameters: PaginationParameters,
     allowedUserIds?: string[]
   ): Promise<PaginatedVehicles> {
-    const { count } = await this.db!.selectFrom('vehicle')
-      .select(this.db!.fn.countAll<number>().as('count'))
-      .executeTakeFirstOrThrow();
+    let countRequest = this.db!.selectFrom('vehicle').select(
+      this.db!.fn.countAll<number>().as('count')
+    );
+    if (allowedUserIds) {
+      countRequest = countRequest.where('vehicle.user_id', 'in', allowedUserIds);
+    }
+    const { count } = await countRequest.executeTakeFirstOrThrow();
     let vinsRequest = this.db!.selectFrom('vehicle')
       .select('vehicle.vin')
       .limit(paginationParameters.perPage)
@@ -71,7 +75,7 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
     const meta: Pagination = {
       page: paginationParameters.page,
       perPage: paginationParameters.perPage,
-      total: count,
+      total: Number(count),
     };
     return {
       items: mappedVehicles.filter((item) => item !== null),
