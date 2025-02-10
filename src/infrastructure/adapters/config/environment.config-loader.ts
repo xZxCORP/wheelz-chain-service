@@ -33,6 +33,9 @@ export class EnvironmentConfigLoader implements ConfigLoaderPort {
       transactionService: {
         url: process.env.TRANSACTION_SERVICE_URL,
       },
+      userService: {
+        url: process.env.USER_SERVICE_URL,
+      },
       dataSigner: {
         signAlgorithm: process.env.DATA_SIGNER_ALGORITHM,
         publicKey: process.env.DATA_SIGNER_PUBLIC,

@@ -1,5 +1,6 @@
 import type { ServerInferRequest, ServerInferResponses } from '@ts-rest/core';
 import type { chainContract } from '@zcorp/wheelz-contracts';
+import type { FastifyRequest } from 'fastify';
 
 import type { ChainController } from '../../controllers/chain.controller.js';
 
@@ -47,9 +48,14 @@ export class ChainRouter {
   };
 
   getAllVehiclesOfTheChain = async (
-    input: ServerInferRequest<typeof chainContract.chain.getAllVehiclesOfTheChain>
+    input: ServerInferRequest<typeof chainContract.chain.getAllVehiclesOfTheChain>,
+    request: FastifyRequest
   ): Promise<ServerInferResponses<typeof chainContract.chain.getAllVehiclesOfTheChain>> => {
-    const result = await this.chainController.getVehiclesOfTheChain(input.query);
+    const result = await this.chainController.getVehiclesOfTheChain(
+      input.query,
+      String(request.user!.userId),
+      String(request.user!.companyId)
+    );
     return {
       status: 200,
       body: result,
