@@ -47,12 +47,12 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
     const { count } = await this.db!.selectFrom('vehicle')
       .select(this.db!.fn.countAll<number>().as('count'))
       .executeTakeFirstOrThrow();
-    const vinsRequest = this.db!.selectFrom('vehicle')
+    let vinsRequest = this.db!.selectFrom('vehicle')
       .select('vehicle.vin')
       .limit(paginationParameters.perPage)
       .offset((paginationParameters.page - 1) * paginationParameters.perPage);
     if (allowedUserIds) {
-      vinsRequest.where('vehicle.user_id', 'in', allowedUserIds);
+      vinsRequest = vinsRequest.where('vehicle.user_id', 'in', allowedUserIds);
     }
     const vins = await vinsRequest.execute();
     if (!vins) {
