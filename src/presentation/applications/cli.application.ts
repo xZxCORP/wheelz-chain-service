@@ -8,9 +8,10 @@ import { DeleteBlocksUseCase } from '../../application/use-cases/delete-blocks.u
 import { DequeueTransactionsUseCase } from '../../application/use-cases/dequeue-transactions.use-case.js';
 import { GetBlocksUseCase } from '../../application/use-cases/get-blocks.use-case.js';
 import { GetChainStatsUseCase } from '../../application/use-cases/get-chain-stats.use-case.js';
-import { GetVehicleOfTheChainByLicensePlate } from '../../application/use-cases/get-vehicle-of-the-chain-by-licence-plate.js';
-import { GetVehicleOfTheChainByVin } from '../../application/use-cases/get-vehicle-of-the-chain-by-vin.js';
-import { GetVehiclesOfTheChain } from '../../application/use-cases/get-vehicles-of-the-chain.use-case.js';
+import { GetCompanyByIdUseCase } from '../../application/use-cases/get-company-by-id.use-case.js';
+import { GetVehicleOfTheChainByLicensePlateUseCase } from '../../application/use-cases/get-vehicle-of-the-chain-by-licence-plate.js';
+import { GetVehicleOfTheChainByVinUseCase } from '../../application/use-cases/get-vehicle-of-the-chain-by-vin.js';
+import { GetVehiclesOfTheChainUseCase } from '../../application/use-cases/get-vehicles-of-the-chain.use-case.js';
 import { IsChainInitializedUseCase } from '../../application/use-cases/is-chain-initialized.use-case.js';
 import { NotifyTransactionCompletedUseCase } from '../../application/use-cases/notify-transaction-completed.use-case.js';
 import { PersistTransactionToChainStateUseCase } from '../../application/use-cases/persist-transaction-to-chain-state.use-case.js';
@@ -25,6 +26,7 @@ import { Sha256Hasher } from '../../infrastructure/adapters/hasher/sha256.hasher
 import { UuidIdGenerator } from '../../infrastructure/adapters/id-generator/uuid.id-generator.js';
 import { WinstonLogger } from '../../infrastructure/adapters/logger/winston.logger.js';
 import { RabbitMQQueue } from '../../infrastructure/adapters/queue/rabbit-mq.queue.js';
+import { TsRestUserService } from '../../infrastructure/adapters/user-service/ts-rest.user-service.js';
 import { KyselyChainStateRepository } from '../../infrastructure/repositories/chain-state/kysely/kysely-chain-state.repository.js';
 import { MongoDBChainRepository } from '../../infrastructure/repositories/mongodb-chain.repository.js';
 import { TsRestTransactionRepository } from '../../infrastructure/repositories/ts-rest-transaction.repository.js';
@@ -66,6 +68,12 @@ export class CliApplication extends AbstractApplication {
       this.config.authService.email,
       this.config.authService.password
     );
+    const userService = new TsRestUserService(
+      this.config.userService.url,
+      this.config.authService.url,
+      this.config.authService.email,
+      this.config.authService.password
+    );
     const dateProvider = new RealDateProvider();
     const dataSigner = new CryptoDataSigner(this.config.dataSigner.publicKey);
     const hasher = new Sha256Hasher();
@@ -103,12 +111,13 @@ export class CliApplication extends AbstractApplication {
       chainStateRepository
     );
     const resetChainStateUseCase = new ResetChainStateUseCase(chainStateRepository);
-    const getVehicleOfTheChainByVin = new GetVehicleOfTheChainByVin(chainStateRepository);
-    const getVehicleOfTheChainByLicensePlate = new GetVehicleOfTheChainByLicensePlate(
+    const getVehicleOfTheChainByVin = new GetVehicleOfTheChainByVinUseCase(chainStateRepository);
+    const getVehicleOfTheChainByLicensePlate = new GetVehicleOfTheChainByLicensePlateUseCase(
       chainStateRepository
     );
-    const getVehiclesOfTheChain = new GetVehiclesOfTheChain(chainStateRepository);
+    const getVehiclesOfTheChain = new GetVehiclesOfTheChainUseCase(chainStateRepository);
     const getChainStatsUseCase = new GetChainStatsUseCase(chainRepository);
+    const getCompanyByIdUseCase = new GetCompanyByIdUseCase(userService);
     this.chainService = new ChainService(
       createBlockUseCase,
       getBlocksUseCase,
@@ -129,6 +138,7 @@ export class CliApplication extends AbstractApplication {
       getVehicleOfTheChainByVin,
       getVehicleOfTheChainByLicensePlate,
       getVehiclesOfTheChain,
+      getCompanyByIdUseCase,
       this.chainService
     );
 

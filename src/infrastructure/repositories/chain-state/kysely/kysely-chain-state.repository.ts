@@ -40,16 +40,21 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
     private readonly logger: LoggerPort
   ) {}
 
-  async getVehicles(paginationParameters: PaginationParameters): Promise<PaginatedVehicles> {
+  async getVehicles(
+    paginationParameters: PaginationParameters,
+    allowedUserIds?: string[]
+  ): Promise<PaginatedVehicles> {
     const { count } = await this.db!.selectFrom('vehicle')
       .select(this.db!.fn.countAll<number>().as('count'))
       .executeTakeFirstOrThrow();
-    const vins = await this.db
-      ?.selectFrom('vehicle')
+    const vinsRequest = this.db!.selectFrom('vehicle')
       .select('vehicle.vin')
       .limit(paginationParameters.perPage)
-      .offset((paginationParameters.page - 1) * paginationParameters.perPage)
-      .execute();
+      .offset((paginationParameters.page - 1) * paginationParameters.perPage);
+    if (allowedUserIds) {
+      vinsRequest.where('vehicle.user_id', 'in', allowedUserIds);
+    }
+    const vins = await vinsRequest.execute();
     if (!vins) {
       return {
         items: [],
