@@ -3,7 +3,10 @@ import { promises as fs } from 'node:fs';
 import path, { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import type { UpdateVehicleTransactionChanges, Vehicle } from '@zcorp/shared-typing-wheelz';
+import type {
+  UpdateVehicleTransactionChanges,
+  VehicleWithUserId,
+} from '@zcorp/shared-typing-wheelz';
 import type { PaginatedVehicles, Pagination, PaginationParameters } from '@zcorp/wheelz-contracts';
 import {
   FileMigrationProvider,
@@ -42,13 +45,21 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
 
   async getVehicles(
     paginationParameters: PaginationParameters,
-    allowedUserIds?: string[]
+    allowedUserIds?: string[],
+    allowedClientsIds?: string[]
   ): Promise<PaginatedVehicles> {
     let countRequest = this.db!.selectFrom('vehicle').select(
       this.db!.fn.countAll<number>().as('count')
     );
     if (allowedUserIds) {
       countRequest = countRequest.where('vehicle.user_id', 'in', allowedUserIds);
+    }
+    if (allowedClientsIds) {
+      countRequest = countRequest.innerJoin('vehicle_attached_client_id_item', (join) =>
+        join
+          .onRef('vehicle.id', '=', 'vehicle_attached_client_id_item.vehicle_id')
+          .on('vehicle_attached_client_id_item.client_id', 'in', allowedClientsIds)
+      );
     }
     const { count } = await countRequest.executeTakeFirstOrThrow();
     let vinsRequest = this.db!.selectFrom('vehicle')
@@ -57,6 +68,13 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
       .offset((paginationParameters.page - 1) * paginationParameters.perPage);
     if (allowedUserIds) {
       vinsRequest = vinsRequest.where('vehicle.user_id', 'in', allowedUserIds);
+    }
+    if (allowedClientsIds) {
+      vinsRequest = vinsRequest.innerJoin('vehicle_attached_client_id_item', (join) =>
+        join
+          .onRef('vehicle.id', '=', 'vehicle_attached_client_id_item.vehicle_id')
+          .on('vehicle_attached_client_id_item.client_id', 'in', allowedClientsIds)
+      );
     }
     const vins = await vinsRequest.execute();
     if (!vins) {
@@ -82,10 +100,10 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
       meta,
     };
   }
-  async getVehicleByVin(vin: string): Promise<Vehicle | null> {
+  async getVehicleByVin(vin: string): Promise<VehicleWithUserId | null> {
     return this.mapInternalVehicleToVehicle(vin);
   }
-  async getVehicleByLicensePlate(lciensePlate: string): Promise<Vehicle | null> {
+  async getVehicleByLicensePlate(lciensePlate: string): Promise<VehicleWithUserId | null> {
     const vehicle = await this.db
       ?.selectFrom('vehicle')
       .innerJoin('vehicle_infos', 'vehicle_infos.vehicle_id', 'vehicle.id')
@@ -97,7 +115,7 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
     }
     return this.mapInternalVehicleToVehicle(vehicle.vin);
   }
-  async saveVehicle(vehicle: Vehicle): Promise<boolean> {
+  async saveVehicle(vehicle: VehicleWithUserId): Promise<boolean> {
     const insertedVehicleResult = await this.db
       ?.insertInto('vehicle')
       .values({ vin: vehicle.vin, user_id: vehicle.userId })
@@ -210,6 +228,24 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
       .executeTakeFirst();
     if (!insertedVehicleSinisterInfosResult || !insertedVehicleSinisterInfosResult.id) {
       return false;
+    }
+    if (vehicle.attachedClientsIds.length > 0) {
+      const insertedVehicleAttachedClientIdItemResult = await this.db
+        ?.insertInto('vehicle_attached_client_id_item')
+        .values(
+          vehicle.attachedClientsIds.map((item) => ({
+            client_id: item,
+            vehicle_id: Number(vehicleId),
+          }))
+        )
+        .returning('id')
+        .executeTakeFirst();
+      if (
+        !insertedVehicleAttachedClientIdItemResult ||
+        !insertedVehicleAttachedClientIdItemResult.id
+      ) {
+        return false;
+      }
     }
     return true;
   }
@@ -342,6 +378,28 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
         return false;
       }
     }
+    if (changes.attachedClientsIds) {
+      const deletePreviousAttachedClientIdItemsResult = await this.db
+        ?.deleteFrom('vehicle_attached_client_id_item')
+        .where('vehicle_attached_client_id_item.vehicle_id', '=', vehicle.id)
+        .executeTakeFirst();
+      if (!deletePreviousAttachedClientIdItemsResult) {
+        return false;
+      }
+      const updatedVehicleAttachedClientIdItemResult = await this.db
+        ?.insertInto('vehicle_attached_client_id_item')
+        .values(
+          changes.attachedClientsIds.map((item) => ({
+            vehicle_id: Number(vehicle.id),
+            client_id: item,
+          }))
+        )
+        .returning('id')
+        .executeTakeFirst();
+      if (!updatedVehicleAttachedClientIdItemResult) {
+        return false;
+      }
+    }
     return true;
   }
   async removeVehicleByVin(id: string): Promise<boolean> {
@@ -365,6 +423,7 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
       await Promise.all([
         this.db.deleteFrom('vehicle_sinister_infos').execute(),
         this.db.deleteFrom('vehicle_technical_control_item').execute(),
+        this.db.deleteFrom('vehicle_attached_client_id_item').execute(),
         this.db.deleteFrom('vehicle_history_item').execute(),
         this.db.deleteFrom('vehicle_infos').execute(),
         this.db.deleteFrom('vehicle_features').execute(),
@@ -438,7 +497,7 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
       }
     }
   }
-  async mapInternalVehicleToVehicle(vin: string): Promise<Vehicle | null> {
+  async mapInternalVehicleToVehicle(vin: string): Promise<VehicleWithUserId | null> {
     const joinedVehicle = await this.db
       ?.selectFrom('vehicle')
       .where('vehicle.vin', '=', vin)
@@ -461,7 +520,12 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
       .where('vehicle_technical_control_item.vehicle_id', '=', joinedVehicle.id)
       .selectAll()
       .execute();
-    const mappedVehicle: Vehicle = {
+    const attachedClientIdItems = await this.db
+      ?.selectFrom('vehicle_attached_client_id_item')
+      .where('vehicle_attached_client_id_item.vehicle_id', '=', joinedVehicle.id)
+      .selectAll()
+      .execute();
+    const mappedVehicle: VehicleWithUserId = {
       vin,
       userId: joinedVehicle.user_id,
       features: {
@@ -511,6 +575,7 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
         nature: item.nature,
         km: item.km,
       })),
+      attachedClientsIds: (attachedClientIdItems || []).map((item) => item.client_id),
       sinisterInfos: {
         count: joinedVehicle.count,
         lastResolutionDate: joinedVehicle.last_resolution_date,
