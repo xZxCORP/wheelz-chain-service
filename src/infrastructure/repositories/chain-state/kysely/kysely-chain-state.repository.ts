@@ -3,7 +3,10 @@ import { promises as fs } from 'node:fs';
 import path, { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import type { UpdateVehicleTransactionChanges, Vehicle } from '@zcorp/shared-typing-wheelz';
+import type {
+  UpdateVehicleTransactionChanges,
+  VehicleWithUserId,
+} from '@zcorp/shared-typing-wheelz';
 import type { PaginatedVehicles, Pagination, PaginationParameters } from '@zcorp/wheelz-contracts';
 import {
   FileMigrationProvider,
@@ -97,10 +100,10 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
       meta,
     };
   }
-  async getVehicleByVin(vin: string): Promise<Vehicle | null> {
+  async getVehicleByVin(vin: string): Promise<VehicleWithUserId | null> {
     return this.mapInternalVehicleToVehicle(vin);
   }
-  async getVehicleByLicensePlate(lciensePlate: string): Promise<Vehicle | null> {
+  async getVehicleByLicensePlate(lciensePlate: string): Promise<VehicleWithUserId | null> {
     const vehicle = await this.db
       ?.selectFrom('vehicle')
       .innerJoin('vehicle_infos', 'vehicle_infos.vehicle_id', 'vehicle.id')
@@ -112,7 +115,7 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
     }
     return this.mapInternalVehicleToVehicle(vehicle.vin);
   }
-  async saveVehicle(vehicle: Vehicle): Promise<boolean> {
+  async saveVehicle(vehicle: VehicleWithUserId): Promise<boolean> {
     const insertedVehicleResult = await this.db
       ?.insertInto('vehicle')
       .values({ vin: vehicle.vin, user_id: vehicle.userId })
@@ -494,7 +497,7 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
       }
     }
   }
-  async mapInternalVehicleToVehicle(vin: string): Promise<Vehicle | null> {
+  async mapInternalVehicleToVehicle(vin: string): Promise<VehicleWithUserId | null> {
     const joinedVehicle = await this.db
       ?.selectFrom('vehicle')
       .where('vehicle.vin', '=', vin)
@@ -522,7 +525,7 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
       .where('vehicle_attached_client_id_item.vehicle_id', '=', joinedVehicle.id)
       .selectAll()
       .execute();
-    const mappedVehicle: Vehicle = {
+    const mappedVehicle: VehicleWithUserId = {
       vin,
       userId: joinedVehicle.user_id,
       features: {

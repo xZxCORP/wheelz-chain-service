@@ -33,11 +33,11 @@ importers:
         specifier: latest
         version: 1.0.3(@types/node@20.17.17)
       '@zcorp/shared-typing-wheelz':
-        specifier: ^1.0.44
-        version: 1.0.44
+        specifier: ^1.0.45
+        version: 1.0.45
       '@zcorp/wheelz-contracts':
-        specifier: ^1.1.21
-        version: 1.1.21(@types/node@20.17.17)
+        specifier: ^1.1.27
+        version: 1.1.27(@types/node@20.17.17)
       commander:
         specifier: ^12.1.0
         version: 12.1.0
@@ -576,14 +576,14 @@ packages:
   '@zcorp/shared-fastify@1.0.3':
     resolution: {integrity: sha512-wFTsEpGh1zNIFR9ILXT9Ipr1vg4MB4OdZfatpCpZyO6O6wpnGj0sKZHo6LuSoZjBR93JK1NIPBli2Yu1EaOgsA==}
 
-  '@zcorp/shared-typing-wheelz@1.0.44':
-    resolution: {integrity: sha512-0nrTwhjXZbIq++ykLt2dgrVzYocQl4fqwCZ34sYrzT+Q3+Eb02n4vSc1+pKoK36DdkcWmssktOG+DalFet8G9A==}
+  '@zcorp/shared-typing-wheelz@1.0.45':
+    resolution: {integrity: sha512-4GrpyVAmLOW0I7HdO7OJPzLVLSCyFEGrp9GS8b3VkbjAVwt3eIdf7ziKEtl978rk0WFBO/XxaH62GQy6mbqagg==}
 
   '@zcorp/tsconfig@1.0.11':
     resolution: {integrity: sha512-Fpv2qGqdedztjMnA7MY1vTV9L28/pXZgZFdXb/oTJYc3VUxpL2SS6EcvALvhEO/xqhfiqn3bQ2nV1tH7n+fkeg==}
 
-  '@zcorp/wheelz-contracts@1.1.21':
-    resolution: {integrity: sha512-8lGBcnpmOpl3nZ5Z/xaeyja4kucZk/CtdsVPBYtbdkjwnozae80V5fGfo4kSOJ5wEMfoXW1qj8DUPozpUphjHg==}
+  '@zcorp/wheelz-contracts@1.1.27':
+    resolution: {integrity: sha512-x7gP5Dq1E5dUCLsJIunGmkgFxAPunttvJvhboMhiBQLH6XNLzLd/o8PGkIiyusdacFDXf4Aq0/FHLCuKdnd7ng==}
 
   abort-controller@3.0.0:
     resolution: {integrity: sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==}
@@ -2718,19 +2718,19 @@ snapshots:
 
   '@zcorp/shared-fastify@1.0.3(@types/node@20.17.17)':
     dependencies:
-      '@zcorp/wheelz-contracts': 1.1.21(@types/node@20.17.17)
+      '@zcorp/wheelz-contracts': 1.1.27(@types/node@20.17.17)
       fastify: 4.29.0
       fastify-plugin: 4.5.1
     transitivePeerDependencies:
       - '@types/node'
 
-  '@zcorp/shared-typing-wheelz@1.0.44':
+  '@zcorp/shared-typing-wheelz@1.0.45':
     dependencies:
       zod: 3.24.1
 
   '@zcorp/tsconfig@1.0.11': {}
 
-  '@zcorp/wheelz-contracts@1.1.21(@types/node@20.17.17)':
+  '@zcorp/wheelz-contracts@1.1.27(@types/node@20.17.17)':
     dependencies:
       '@ts-rest/core': 3.51.1(@types/node@20.17.17)(zod@3.24.1)
       zod: 3.24.1
