@@ -6,6 +6,7 @@ export interface KyselyChainStateDatabase {
   vehicle_history_item: KyselyVehicleHistoryItemTable;
   vehicle_technical_control_item: KyselyTechnicalControlItemTable;
   vehicle_sinister_infos: KyselySinisterInfosTable;
+  vehicle_attached_client_id_item: KyselyAttachedClientIdItemTable;
 }
 export interface KyselyVehicleTable {
   id: Generated<number>;
@@ -109,3 +110,15 @@ export interface KyselySinisterInfosTable {
 export type KyselySinisterInfos = Selectable<KyselySinisterInfosTable>;
 export type NewKyselySinisterInfos = Insertable<KyselySinisterInfosTable>;
 export type KyselySinisterInfosUpdate = Updateable<KyselySinisterInfosTable>;
+
+export interface KyselyAttachedClientIdItemTable {
+  id: Generated<number>;
+  vehicle_id: number;
+  client_id: string;
+
+  created_at: Generated<Date>;
+}
+
+export type KyselyAttachedClientIdItem = Selectable<KyselyAttachedClientIdItemTable>;
+export type NewKyselyAttachedClientIdItem = Insertable<KyselyAttachedClientIdItemTable>;
+export type KyselyAttachedClientIdItemUpdate = Updateable<KyselyAttachedClientIdItemTable>;

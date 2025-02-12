@@ -33,6 +33,9 @@ export const configSchema = z.object({
   transactionService: z.object({
     url: z.string(),
   }),
+  userService: z.object({
+    url: z.string(),
+  }),
   dataSigner: z.object({
     signAlgorithm: z.enum(supportedSignAlgorithms),
     publicKey: z.string(),

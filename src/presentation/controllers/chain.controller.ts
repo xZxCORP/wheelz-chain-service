@@ -15,8 +15,13 @@ export class ChainController {
   getVehicleOfTheChainByLicensePlate(licensePlate: string) {
     return this.chainStateService.getVehicleByLicensePlate(licensePlate);
   }
-  getVehiclesOfTheChain(paginationParameters: PaginationParameters) {
-    return this.chainStateService.getVehicles(paginationParameters);
+  getVehiclesOfTheChain(
+    paginationParameters: PaginationParameters,
+    userId: string,
+    roles: string[],
+    companyId?: string
+  ) {
+    return this.chainStateService.getVehicles(paginationParameters, userId, roles, companyId);
   }
   refreshChain() {
     return this.chainStateService.refreshChainState();

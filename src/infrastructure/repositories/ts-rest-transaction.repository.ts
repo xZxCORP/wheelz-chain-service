@@ -1,48 +1,31 @@
 import { initClient, type InitClientReturn } from '@ts-rest/core';
 import type { VehicleTransaction } from '@zcorp/shared-typing-wheelz';
-import { authenticationContract, transactionContract } from '@zcorp/wheelz-contracts';
+import { transactionContract } from '@zcorp/wheelz-contracts';
 
 import type { TransactionRepository } from '../../domain/repositories/transaction.repository.js';
+import { BaseTsRestService } from '../adapters/shared/base.ts-rest.js';
 
-export class TsRestTransactionRepository implements TransactionRepository {
+export class TsRestTransactionRepository
+  extends BaseTsRestService
+  implements TransactionRepository
+{
   private transactionClient: InitClientReturn<
     typeof transactionContract,
     { baseUrl: ''; baseHeaders: {} }
   >;
-  private authClient: InitClientReturn<
-    typeof authenticationContract,
-    { baseUrl: ''; baseHeaders: {} }
-  >;
+
   constructor(
     private readonly transactionServiceUrl: string,
-    private readonly authServiceUrl: string,
-    private readonly email: string,
-    private readonly password: string
+    authServiceUrl: string,
+    email: string,
+    password: string
   ) {
+    super(authServiceUrl, email, password);
     this.transactionClient = initClient(transactionContract, {
       baseUrl: this.transactionServiceUrl,
     });
-    this.authClient = initClient(authenticationContract, {
-      baseUrl: this.authServiceUrl,
-    });
   }
-  private async fetchAndStoreNewToken(): Promise<string | null> {
-    const loginResponse = await this.authClient.authentication.login({
-      body: {
-        email: this.email,
-        password: this.password,
-      },
-    });
-    if (loginResponse.status === 201) {
-      return loginResponse.body.token;
-    }
-    return null;
-  }
-  private async getToken(): Promise<string | null> {
-    const token = await this.fetchAndStoreNewToken();
 
-    return token;
-  }
   async getById(transactionId: string): Promise<VehicleTransaction | null> {
     const token = await this.getToken();
     if (!token) {
@@ -60,7 +43,6 @@ export class TsRestTransactionRepository implements TransactionRepository {
       return transaction.body;
     }
     if (transaction.status === 401) {
-      //TODO: retry
       return null;
     }
     return null;

@@ -68,37 +68,33 @@ export class FastifyApiServer implements ManagedResource {
           },
         },
         getAllVehiclesOfTheChain: {
-          handler: this.chainRouter.getAllVehiclesOfTheChain,
+          handler: (parameters) =>
+            this.chainRouter.getAllVehiclesOfTheChain(parameters, parameters.request),
           hooks: {
-            //TODO: adding admin role
-            onRequest: [requireAuth(), requireAllRoles(['admin'])],
+            onRequest: [requireAuth()],
           },
         },
         refreshChainState: {
           handler: this.chainRouter.refreshChainState,
           hooks: {
-            //TODO: adding admin role
             onRequest: [requireAuth(), requireAllRoles(['admin'])],
           },
         },
         processTransactionBatch: {
           handler: this.chainRouter.processTransactionBatch,
           hooks: {
-            //TODO: adding admin role
             onRequest: [requireAuth(), requireAllRoles(['admin'])],
           },
         },
         verifyChainState: {
           handler: this.chainRouter.verifyChainState,
           hooks: {
-            //TODO: adding admin role
             onRequest: [requireAuth(), requireAllRoles(['admin'])],
           },
         },
         stats: {
           handler: this.chainRouter.stats,
           hooks: {
-            //TODO: adding admin role
             onRequest: [requireAuth(), requireAllRoles(['admin'])],
           },
         },
