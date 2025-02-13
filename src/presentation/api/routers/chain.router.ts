@@ -55,7 +55,7 @@ export class ChainRouter {
       input.query,
       String(request.user!.userId),
       request.user!.roles,
-      String(request.user!.companyId)
+      request.user!.companyId ? String(request.user!.companyId) : undefined
     );
     return {
       status: 200,
