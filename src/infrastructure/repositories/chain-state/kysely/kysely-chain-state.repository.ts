@@ -53,7 +53,14 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
       this.db!.fn.countAll<number>().as('count')
     );
     if (allowedUserIds) {
-      countRequest = countRequest.where('vehicle.user_id', 'in', allowedUserIds);
+      countRequest = countRequest.where(({ eb, exists }) =>
+        exists(
+          eb
+            .selectFrom('vehicle_user')
+            .whereRef('vehicle.id', '=', 'vehicle_user.vehicle_id')
+            .where('vehicle_user.user_id', 'in', allowedUserIds)
+        )
+      );
     }
     if (allowedClientsIds) {
       countRequest = countRequest.where(({ eb, exists }) =>
@@ -71,7 +78,14 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
       .limit(paginationParameters.perPage)
       .offset((paginationParameters.page - 1) * paginationParameters.perPage);
     if (allowedUserIds) {
-      vinsRequest = vinsRequest.where('vehicle.user_id', 'in', allowedUserIds);
+      vinsRequest = vinsRequest.where(({ eb, exists }) =>
+        exists(
+          eb
+            .selectFrom('vehicle_user')
+            .whereRef('vehicle.id', '=', 'vehicle_user.vehicle_id')
+            .where('vehicle_user.user_id', 'in', allowedUserIds)
+        )
+      );
     }
     if (allowedClientsIds) {
       vinsRequest = vinsRequest.where(({ eb, exists }) =>
@@ -125,13 +139,22 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
   async saveVehicle(vehicle: VehicleWithUserId): Promise<boolean> {
     const insertedVehicleResult = await this.db
       ?.insertInto('vehicle')
-      .values({ vin: vehicle.vin, user_id: vehicle.userId })
+      .values({ vin: vehicle.vin })
       .returning('id')
       .executeTakeFirst();
     if (!insertedVehicleResult || !insertedVehicleResult.id) {
       return false;
     }
+
     const vehicleId = insertedVehicleResult.id;
+    await this.db
+      ?.insertInto('vehicle_user')
+      .values({
+        vehicle_id: vehicleId,
+        user_id: vehicle.userId,
+      })
+      .onConflict((oc) => oc.columns(['vehicle_id', 'user_id']).doNothing())
+      .execute();
 
     const insertedVehicleFeaturesResult = await this.db
       ?.insertInto('vehicle_features')
@@ -258,7 +281,8 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
   }
   async updateVehicleByVin(
     vin: string,
-    changes: UpdateVehicleTransactionChanges
+    changes: UpdateVehicleTransactionChanges,
+    userId: string
   ): Promise<boolean> {
     const vehicle = await this.db
       ?.selectFrom('vehicle')
@@ -268,6 +292,14 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
     if (!vehicle) {
       return false;
     }
+    await this.db
+      ?.insertInto('vehicle_user')
+      .values({
+        vehicle_id: vehicle.id,
+        user_id: userId,
+      })
+      .onConflict((oc) => oc.columns(['vehicle_id', 'user_id']).doNothing())
+      .execute();
     if (changes.features) {
       const updatedVehicleFeaturesResult = await this.db
         ?.updateTable('vehicle_features')
@@ -437,6 +469,7 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
         this.db.deleteFrom('vehicle_history_item').execute(),
         this.db.deleteFrom('vehicle_infos').execute(),
         this.db.deleteFrom('vehicle_features').execute(),
+        this.db.deleteFrom('vehicle_user').execute(),
         this.db.deleteFrom('vehicle').execute(),
       ]);
       return true;
@@ -535,9 +568,15 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
       .where('vehicle_attached_client_id_item.vehicle_id', '=', joinedVehicle.id)
       .selectAll()
       .execute();
+    const lastUserId = await this.db
+      ?.selectFrom('vehicle_user')
+      .where('vehicle_user.vehicle_id', '=', joinedVehicle.id)
+      .orderBy('vehicle_user.created_at', 'desc')
+      .select('vehicle_user.user_id')
+      .executeTakeFirst();
     const mappedVehicle: VehicleWithUserId = {
       vin,
-      userId: joinedVehicle.user_id,
+      userId: lastUserId!.user_id,
       features: {
         brand: joinedVehicle.brand,
         model: joinedVehicle.model,
