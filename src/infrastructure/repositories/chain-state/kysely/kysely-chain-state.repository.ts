@@ -48,6 +48,7 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
     allowedUserIds?: string[],
     allowedClientsIds?: string[]
   ): Promise<PaginatedVehicles> {
+    //TODO: refacto with function that return query filters
     let countRequest = this.db!.selectFrom('vehicle').select(
       this.db!.fn.countAll<number>().as('count')
     );
@@ -55,10 +56,13 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
       countRequest = countRequest.where('vehicle.user_id', 'in', allowedUserIds);
     }
     if (allowedClientsIds) {
-      countRequest = countRequest.innerJoin('vehicle_attached_client_id_item', (join) =>
-        join
-          .onRef('vehicle.id', '=', 'vehicle_attached_client_id_item.vehicle_id')
-          .on('vehicle_attached_client_id_item.client_id', 'in', allowedClientsIds)
+      countRequest = countRequest.where(({ eb, exists }) =>
+        exists(
+          eb
+            .selectFrom('vehicle_attached_client_id_item')
+            .whereRef('vehicle.id', '=', 'vehicle_attached_client_id_item.vehicle_id')
+            .where('vehicle_attached_client_id_item.client_id', 'in', allowedClientsIds)
+        )
       );
     }
     const { count } = await countRequest.executeTakeFirstOrThrow();
@@ -70,10 +74,13 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
       vinsRequest = vinsRequest.where('vehicle.user_id', 'in', allowedUserIds);
     }
     if (allowedClientsIds) {
-      vinsRequest = vinsRequest.innerJoin('vehicle_attached_client_id_item', (join) =>
-        join
-          .onRef('vehicle.id', '=', 'vehicle_attached_client_id_item.vehicle_id')
-          .on('vehicle_attached_client_id_item.client_id', 'in', allowedClientsIds)
+      vinsRequest = vinsRequest.where(({ eb, exists }) =>
+        exists(
+          eb
+            .selectFrom('vehicle_attached_client_id_item')
+            .whereRef('vehicle.id', '=', 'vehicle_attached_client_id_item.vehicle_id')
+            .where('vehicle_attached_client_id_item.client_id', 'in', allowedClientsIds)
+        )
       );
     }
     const vins = await vinsRequest.execute();
@@ -385,6 +392,9 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
         .executeTakeFirst();
       if (!deletePreviousAttachedClientIdItemsResult) {
         return false;
+      }
+      if (changes.attachedClientsIds.length === 0) {
+        return true;
       }
       const updatedVehicleAttachedClientIdItemResult = await this.db
         ?.insertInto('vehicle_attached_client_id_item')
