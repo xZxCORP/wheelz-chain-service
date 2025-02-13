@@ -16,7 +16,8 @@ export class PersistTransactionToChainStateUseCase {
       case 'update': {
         await this.chainStateRepository.updateVehicleByVin(
           transaction.data.vin,
-          transaction.data.changes
+          transaction.data.changes,
+          transaction.userId
         );
         break;
       }

@@ -1,6 +1,7 @@
 import type { Generated, Insertable, Selectable, Updateable } from 'kysely';
 export interface KyselyChainStateDatabase {
   vehicle: KyselyVehicleTable;
+  vehicle_user: KyselyVehicleUserTable;
   vehicle_features: KyselyVehicleFeaturesTable;
   vehicle_infos: KyselyVehicleInfosTable;
   vehicle_history_item: KyselyVehicleHistoryItemTable;
@@ -11,13 +12,23 @@ export interface KyselyChainStateDatabase {
 export interface KyselyVehicleTable {
   id: Generated<number>;
   vin: string;
-  user_id: string;
   created_at: Generated<Date>;
 }
 
 export type KyselyVehicle = Selectable<KyselyVehicleTable>;
 export type NewKyselyVehicle = Insertable<KyselyVehicleTable>;
 export type KyselyVehicleUpdate = Updateable<KyselyVehicleTable>;
+
+export interface KyselyVehicleUserTable {
+  id: Generated<number>;
+  vehicle_id: number;
+  user_id: string;
+  created_at: Generated<Date>;
+}
+
+export type KyselyVehicleUser = Selectable<KyselyVehicleUserTable>;
+export type NewKyselyVehicleUser = Insertable<KyselyVehicleUserTable>;
+export type KyselyVehicleUserUpdate = Updateable<KyselyVehicleUserTable>;
 
 export interface KyselyVehicleFeaturesTable {
   id: Generated<number>;

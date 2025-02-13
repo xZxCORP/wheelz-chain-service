@@ -69,6 +69,7 @@ export class ChainStateService {
       return defaultResponse;
     }
     const mappedUserIds = company.users.map((user) => String(user.id));
+    //maybe not the best way to do it
     return this.getVehiclesOfTheChain.execute(paginationParameters, mappedUserIds);
   }
 }

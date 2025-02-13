@@ -13,7 +13,11 @@ export interface ChainStateRepository {
   getVehicleByVin(vin: string): Promise<VehicleWithUserId | null>;
   getVehicleByLicensePlate(licensePlate: string): Promise<VehicleWithUserId | null>;
   saveVehicle(vehicle: VehicleWithUserId): Promise<boolean>;
-  updateVehicleByVin(vin: string, changes: UpdateVehicleTransactionChanges): Promise<boolean>;
+  updateVehicleByVin(
+    vin: string,
+    changes: UpdateVehicleTransactionChanges,
+    userId: string
+  ): Promise<boolean>;
   removeVehicleByVin(id: string): Promise<boolean>;
   isRunning(): Promise<boolean>;
   reset(): Promise<boolean>;
