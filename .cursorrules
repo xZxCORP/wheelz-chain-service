@@ -31,6 +31,8 @@
 ## Testing
 - All new business logic MUST be covered by unit tests (`*.spec.ts`) colocated with the source file.
 - Tests must not hit external services; provide in-memory or mock implementations of Ports.
+- Structure every test using the **Arrange / Act / Assert (AAA)** pattern to improve readability and maintainability.
+- Test names **must be written in clear, explicit English**, describing the behaviour under test and the expected outcome.
 
 ## Infrastructure & persistence
 - Use Kysely for SQL databases and the official MongoDB driver; keep database-specific code inside `src/infrastructure/**`.
