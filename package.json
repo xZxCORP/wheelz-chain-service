@@ -3,14 +3,17 @@
   "description": "",
   "type": "module",
   "engines": {
-    "node": ">= 20.11.0"
+    "node": ">= 20.19.0"
   },
   "scripts": {
     "dev": "tsx src/main.runner.ts",
     "cli": "tsx src/cli.runner.ts",
     "build": "tsc",
     "lint": "eslint . --fix",
-    "test": "glob -c \"tsx --test --test-reporter spec \" \"./tests/**/*.spec.ts\""
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:coverage": "vitest run --coverage",
+    "test:coverage:watch": "vitest --coverage"
   },
   "dependencies": {
     "@cloudamqp/amqp-client": "^3.1.1",
@@ -21,8 +24,8 @@
     "@ts-rest/fastify": "^3.51.1",
     "@ts-rest/open-api": "^3.51.1",
     "@zcorp/shared-fastify": "latest",
-    "@zcorp/shared-typing-wheelz": "^1.0.45",
-    "@zcorp/wheelz-contracts": "^1.1.27",
+    "@zcorp/shared-typing-wheelz": "^1.0.47",
+    "@zcorp/wheelz-contracts": "^1.1.42",
     "commander": "^12.1.0",
     "cron": "^3.5.0",
     "dayjs": "^1.11.13",
@@ -40,6 +43,7 @@
     "@swc/core": "^1.10.15",
     "@types/node": "^20.17.17",
     "@types/pg": "^8.11.11",
+    "@vitest/coverage-v8": "^3.2.4",
     "@zcorp/eslint-config": "latest",
     "@zcorp/prettier-config": "latest",
     "@zcorp/tsconfig": "latest",
@@ -48,6 +52,7 @@
     "glob": "^10.4.5",
     "prettier": "^3.5.0",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^3.2.4"
   }
 }

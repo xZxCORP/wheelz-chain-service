@@ -18,6 +18,9 @@ export class BlockDataPreparationService {
       dataSignature: transaction.dataSignature,
       action: transaction.action,
       data: transaction.data,
+      withAnomaly: transaction.withAnomaly,
+      userId: transaction.userId,
+      status: transaction.status,
     };
   }
 }

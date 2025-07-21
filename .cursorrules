@@ -1,0 +1,51 @@
+# Cursor Rules for Wheelz Chain Service
+
+## Project context
+- Node.js + TypeScript (ESM), strict type checking enabled.
+- Hexagonal / Clean Architecture with the following layers:
+  - **domain** (pure business logic, entities, repository interfaces)
+  - **application** (ports, use-cases, orchestration services)
+  - **infrastructure** (adapters implementing ports & repositories, managed resources)
+  - **presentation** (controllers, API routers, CLI, servers)
+- Lower layers MUST NOT import from higher layers (e.g. `domain` must never depend on `application`).
+
+## Naming conventions
+- Dependency inversion interfaces end with `Port` (e.g. `DateProviderPort`).
+- Repository interfaces end with `Repository`.
+- Use-cases are classes ending with `UseCase` exposing a single public `execute` method.
+- Services that compose multiple use-cases end with `Service`.
+- File names are kebab-case mirroring the class or interface name (e.g. `date-provider.port.ts`).
+- Prefer named exports; use a default export only when the file contains a single entity.
+
+## Coding style
+- Use `async/await`; avoid promise chains.
+- Never use `console.*`; inject and use `LoggerPort` with the appropriate log level.
+- Avoid `any`; use explicit generics or `unknown` when necessary.
+- Always prefix built-in modules with `node:` (e.g. `import { createHash } from 'node:crypto'`).
+- Perform all dependency injection through constructors; application & domain code MUST NOT import concrete adapter classes.
+
+## Error handling
+- Throw meaningful errors with English messages unless surfaced to the end-user (presentation layer handles localisation).
+- Catch errors only when recovery, logging, or mapping is required; otherwise let them bubble up.
+
+## Testing
+- All new business logic MUST be covered by unit tests (`*.spec.ts`) colocated with the source file.
+- Tests must not hit external services; provide in-memory or mock implementations of Ports.
+- Structure every test using the **Arrange / Act / Assert (AAA)** pattern to improve readability and maintainability.
+- Test names **must be written in clear, explicit English**, describing the behaviour under test and the expected outcome.
+
+## Infrastructure & persistence
+- Use Kysely for SQL databases and the official MongoDB driver; keep database-specific code inside `src/infrastructure/**`.
+- Apply schema changes via new migration files in `src/infrastructure/repositories/**/migrations` – never edit existing migrations.
+
+## Commit scope & hygiene
+- Do NOT commit generated artifacts (`dist`, `node_modules`, etc.).
+- Keep the single source of truth lockfile: `pnpm-lock.yaml`.
+- Follow Conventional Commit style when describing changes (e.g. `feat:`, `fix:`).
+
+## Documentation
+- Public API types MUST align with `@zcorp/wheelz-contracts` & `@zcorp/shared-typing-wheelz` definitions.
+- When behaviour is non-obvious, add JSDoc comments.
+
+## AI-generated code expectations
+When generating or modifying code, strictly adhere to the rules above. If unsure, ask for clarification before proceeding. 
