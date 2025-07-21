@@ -233,6 +233,7 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
             date: item.date,
             result: item.result,
             result_raw: item.resultRaw,
+            file_url: item.fileUrl,
             nature: item.nature,
             km: item.km,
           }))
@@ -407,6 +408,7 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
             date: item.date,
             result: item.result,
             result_raw: item.resultRaw,
+            file_url: item.fileUrl,
             nature: item.nature,
             km: item.km,
           }))
@@ -623,6 +625,7 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
         resultRaw: item.result_raw,
         nature: item.nature,
         km: item.km,
+        fileUrl: item.file_url,
       })),
       attachedClientsIds: (attachedClientIdItems || []).map((item) => item.client_id),
       sinisterInfos: {

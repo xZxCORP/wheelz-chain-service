@@ -102,6 +102,7 @@ export interface KyselyTechnicalControlItemTable {
   result_raw: string;
   nature: string;
   km: number;
+  file_url: string | null;
   created_at: Generated<Date>;
 }
 
