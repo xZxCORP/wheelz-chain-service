@@ -1,11 +1,16 @@
-import type { Block, ChainStats } from '@zcorp/shared-typing-wheelz';
+import type { Block, ChainStats, VehicleTransaction } from '@zcorp/shared-typing-wheelz';
 import { describe, expect, it } from 'vitest';
 
 import { InMemoryChainRepository } from '../../../tests/fakes/in-memory-chain.repository.js';
 import { sampleVehicleTransaction } from '../../domain/entities/sample-vehicle.transaction.js';
 import { GetChainStatsUseCase } from './get-chain-stats.use-case.js';
 
-function buildBlock(id: string, previousHash: string, timestamp: Date, txs: any[]): Block {
+function buildBlock(
+  id: string,
+  previousHash: string,
+  timestamp: Date,
+  txs: VehicleTransaction[]
+): Block {
   return {
     id,
     previousHash,

@@ -1,4 +1,4 @@
-import type { Block } from '@zcorp/shared-typing-wheelz';
+import type { Block, VehicleTransaction } from '@zcorp/shared-typing-wheelz';
 import { describe, expect, it } from 'vitest';
 
 import { FakeHasher } from '../../../tests/fakes/fake-hasher.js';
@@ -9,7 +9,7 @@ function buildBlock(
   id: string,
   previousHash: string,
   timestamp: Date,
-  transactions: any[] = []
+  transactions: VehicleTransaction[] = []
 ): Block {
   const prep = new BlockDataPreparationService();
   const dataToHash = prep.prepareForHashing({ previousHash, timestamp, transactions });
