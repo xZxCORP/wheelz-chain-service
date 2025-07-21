@@ -2,6 +2,7 @@ import type { Block, VehicleTransaction } from '@zcorp/shared-typing-wheelz';
 import { describe, expect, it } from 'vitest';
 
 import { FakeHasher } from '../../../tests/fakes/fake-hasher.js';
+import { sampleVehicleTransaction } from '../../domain/entities/sample-vehicle.transaction.js';
 import { BlockDataPreparationService } from '../../domain/service/block-data-preparation.service.js';
 import { VerifyBlockPairUseCase } from './verify-block-pair.use-case.js';
 
@@ -93,9 +94,15 @@ describe('VerifyBlockPairUseCase', () => {
 
     const previousBlock = buildBlock('block-1', '0'.repeat(64), new Date('2024-01-01T00:00:00Z'));
 
-    const transactions = [
-      { id: 'tx1', data: 'some data' },
-      { id: 'tx2', data: 'more data' },
+    const transactions: VehicleTransaction[] = [
+      {
+        ...sampleVehicleTransaction,
+        id: 'tx-1',
+      },
+      {
+        ...sampleVehicleTransaction,
+        id: 'tx-2',
+      },
     ];
 
     const currentBlock = buildBlock(
