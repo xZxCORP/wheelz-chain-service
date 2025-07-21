@@ -37,6 +37,43 @@ describe('GetChainStatsUseCase', () => {
     });
   });
 
+  it('returns null for lastExecution when only one block exists', async () => {
+    // Arrange
+    const genesis = buildBlock('block-0', '0'.repeat(64), new Date('2024-01-01T00:00:00Z'), []);
+    const repo = new InMemoryChainRepository([genesis]);
+    const sut = new GetChainStatsUseCase(repo);
+
+    // Act
+    const stats = await sut.execute();
+
+    // Assert
+    expect(stats.evolutionOfTransactions).toEqual([{ date: '2024-01-01', value: 0 }]);
+    expect(stats.evolutionOfVehicles).toEqual([{ date: '2024-01-01', value: 0 }]);
+    expect(stats.lastExecution).toBeNull(); // Couvre le cas blocks.length < 2
+  });
+
+  it('handles undefined newTransactions in lastExecution', async () => {
+    // Arrange
+    const genesis = buildBlock('block-0', '0'.repeat(64), new Date('2024-01-01T00:00:00Z'), []);
+    const block1 = buildBlock(
+      'block-1',
+      genesis.hash,
+      new Date('2024-01-01T12:00:00Z'), // Même jour que genesis
+      [sampleVehicleTransaction]
+    );
+    const repo = new InMemoryChainRepository([genesis, block1]);
+    const sut = new GetChainStatsUseCase(repo);
+
+    // Act
+    const stats = await sut.execute();
+
+    // Assert
+    expect(stats.lastExecution).toEqual({
+      date: '2024-01-01',
+      newTransactions: 1, // Couvre le cas newTransactions ?? 0
+    });
+  });
+
   it('computes cumulative totals and last execution correctly with one transaction', async () => {
     // Arrange
     const genesis = buildBlock('block-0', '0'.repeat(64), new Date('2024-01-01T00:00:00Z'), []);
