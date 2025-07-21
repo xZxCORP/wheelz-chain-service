@@ -505,6 +505,7 @@ export class KyselyChainStateRepository implements ChainStateRepository, Managed
 
     this.migrator = new Migrator({
       db: this.db,
+      allowUnorderedMigrations: true,
       provider: new FileMigrationProvider({
         fs,
         path,
