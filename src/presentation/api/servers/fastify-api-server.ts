@@ -63,9 +63,6 @@ export class FastifyApiServer implements ManagedResource {
       {
         getVehicleOfTheChain: {
           handler: this.chainRouter.getVehicleOfTheChain,
-          hooks: {
-            onRequest: [requireAuth()],
-          },
         },
         getAllVehiclesOfTheChain: {
           handler: (parameters) =>
