@@ -106,38 +106,37 @@ export class ResilientRabbitMQQueue implements QueuePort, ManagedResource {
     }
 
     const messages: unknown[] = [];
-    
+
     try {
       const channel = await this.connection.acquire();
-      
+
       try {
         await channel.queueDeclare(this.queueName);
 
         for (let index = 0; index < count; index++) {
           const message = await channel.basicGet(this.queueName);
-          
+
           if (!message) {
             break;
           }
-          
+
           try {
-            const content = message.body.toString();
+            this.logger.info(`Received message: ${JSON.stringify(message)}`);
+            const content = message.body;
             if (!content) {
-              channel.basicNack({ 
-                deliveryTag: message.deliveryTag, 
-                requeue: false 
+              channel.basicNack({
+                deliveryTag: message.deliveryTag,
+                requeue: false,
               });
               continue;
             }
-            
-            const data = JSON.parse(content);
-            messages.push(data);
-            
+            messages.push(content);
+
             channel.basicAck({ deliveryTag: message.deliveryTag });
           } catch (error) {
-            channel.basicNack({ 
-              deliveryTag: message.deliveryTag, 
-              requeue: false 
+            channel.basicNack({
+              deliveryTag: message.deliveryTag,
+              requeue: true,
             });
             this.logger.error('Error processing message:', error);
           }
@@ -145,7 +144,7 @@ export class ResilientRabbitMQQueue implements QueuePort, ManagedResource {
       } finally {
         await channel.close();
       }
-      
+
       return messages;
     } catch (error) {
       this.logger.error('Error dequeuing messages:', error);
@@ -161,11 +160,13 @@ export class ResilientRabbitMQQueue implements QueuePort, ManagedResource {
 
     try {
       const channel = await this.connection.acquire();
-      
+
       try {
         // Purger directement la queue (plus simple que delete/recreate)
         const result = await channel.queuePurge(this.queueName);
-        this.logger.info(`Queue ${this.queueName} cleared, ${result.messageCount} messages removed`);
+        this.logger.info(
+          `Queue ${this.queueName} cleared, ${result.messageCount} messages removed`
+        );
         return true;
       } finally {
         await channel.close();
@@ -175,6 +176,4 @@ export class ResilientRabbitMQQueue implements QueuePort, ManagedResource {
       return false;
     }
   }
-
-
 }
