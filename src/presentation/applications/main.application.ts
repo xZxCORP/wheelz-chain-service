@@ -29,7 +29,7 @@ import { ChainStateRepositoryHealthCheck } from '../../infrastructure/adapters/h
 import { QueueHealthCheck } from '../../infrastructure/adapters/health-check/queue.health-check.js';
 import { UuidIdGenerator } from '../../infrastructure/adapters/id-generator/uuid.id-generator.js';
 import { WinstonLogger } from '../../infrastructure/adapters/logger/winston.logger.js';
-import { RabbitMQQueue } from '../../infrastructure/adapters/queue/rabbit-mq.queue.js';
+import { ResilientRabbitMQQueue } from '../../infrastructure/adapters/queue/resilient-rabbit-mq.queue.js';
 import { TsRestUserService } from '../../infrastructure/adapters/user-service/ts-rest.user-service.js';
 import { KyselyChainStateRepository } from '../../infrastructure/repositories/chain-state/kysely/kysely-chain-state.repository.js';
 import { MongoDBChainRepository } from '../../infrastructure/repositories/mongodb-chain.repository.js';
@@ -43,12 +43,12 @@ export class MainApplication extends AbstractApplication {
   private chainStateService!: ChainStateService;
   private jobs: CronJob[] = [];
   async initializeResources(): Promise<void> {
-    const transactionQueue = new RabbitMQQueue(
+    const transactionQueue = new ResilientRabbitMQQueue(
       this.config.transactionQueue.url,
       this.config.transactionQueue.newQueueName,
       this.logger
     );
-    const completedQueue = new RabbitMQQueue(
+    const completedQueue = new ResilientRabbitMQQueue(
       this.config.transactionQueue.url,
       this.config.transactionQueue.completedQueueName,
       this.logger
