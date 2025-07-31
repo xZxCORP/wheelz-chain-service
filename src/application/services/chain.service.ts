@@ -39,10 +39,12 @@ export class ChainService {
 
   async processTransactionBatch(batchSize: number = 10): Promise<void> {
     const transactions = await this.dequeueTransactionsUseCase.execute(batchSize);
+    this.logger.info(`Processing ${transactions.length} transactions`);
     if (transactions.length > 0) {
       const validTransactions: VehicleTransaction[] = [];
       for (const transaction of transactions) {
         const isValid = await this.verifyTransactionUseCase.execute(transaction);
+        this.logger.info(`Transaction ${transaction.id} is valid: ${isValid}`);
         if (!isValid) {
           const result = await this.notifyTransactionCompletedUseCase.execute(
             transaction.id,
